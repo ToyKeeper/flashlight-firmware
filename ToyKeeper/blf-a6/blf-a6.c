@@ -87,7 +87,7 @@
 
 // comment out to use extended config mode instead of a solderable star
 // (controls whether mode memory is on the star or if it's a setting in config mode)
-#define CONFIG_STARS
+//#define CONFIG_STARS
 
 // output to use for blinks on battery check mode (primary PWM level, alt PWM level)
 // Use 20,0 for a single-channel driver or 0,20 for a two-channel driver
@@ -110,7 +110,7 @@
 // in reverse order.  So, to go backward from moon to turbo to strobe to
 // battcheck, use BATTCHECK,STROBE,TURBO .
 #define NUM_HIDDEN          4
-#define HIDDENMODES         BIKING_STROBE,BATTCHECK,STROBE,TURBO
+#define HIDDENMODES         BATTCHECK,BIKING_STROBE,STROBE,TURBO
 #define HIDDENMODES_PWM     PHASE,PHASE,PHASE,PHASE
 #define HIDDENMODES_ALT     0,0,0,0   // Zeroes, same length as NUM_HIDDEN
 
@@ -459,10 +459,12 @@ int main(void)
     while (ADCSRA & (1 << ADSC));
     cap_val = ADCH; // save this for later
 
+#ifdef CONFIG_STARS
     // All ports default to input, but turn pull-up resistors on for the stars (not the ADC input!  Made that mistake already)
     // only one star, because one is used for PWM channel 2
     // and the other is used for the off-time capacitor
     PORTB = (1 << STAR3_PIN);
+#endif
 
     // Set PWM pin to output
     DDRB |= (1 << PWM_PIN);     // enable main channel
@@ -485,24 +487,26 @@ int main(void)
 
 
     // memory decayed, reset it
-    // (should happen on med/long press)
-    if (fast_presses > 0x20) { fast_presses = 0; }
+    // (should happen on med/long press instead
+    //  because mem decay is *much* slower when the OTC is charged
+    //  so let's not wait until it decays to reset it)
+    //if (fast_presses > 0x20) { fast_presses = 0; }
 
     if (cap_val > CAP_SHORT) {
-        // Indicates they did a short press, go to the next mode
-        next_mode(); // Will handle wrap arounds
         // We don't care what the value is as long as it's over 15
         fast_presses = (fast_presses+1) & 0x1f;
+        // Indicates they did a short press, go to the next mode
+        next_mode(); // Will handle wrap arounds
 #ifdef OFFTIM3
     } else if (cap_val > CAP_MED) {
+        fast_presses = 0;
         // User did a medium press, go back one mode
         prev_mode(); // Will handle "negative" modes and wrap-arounds
-        //fast_presses = 0;
 #endif
     } else {
         // Long press, keep the same mode
         // ... or reset to the first mode
-        //fast_presses = 0;
+        fast_presses = 0;
         if (! memory) {
             // Reset to the first mode
             mode_idx = 0;
@@ -593,23 +597,21 @@ int main(void)
 #endif
         }
 #endif  // ifdef BIKING_STROBE
+#ifdef BATTCHECK
         else if (output == BATTCHECK) {
-            // turn off and wait one second before showing the value
-            // (also, ensure voltage is measured while not under load)
-            set_output(0,0);
-            _delay_s();
             voltage = get_voltage();
-            //voltage = get_voltage(); // the first one is unreliable
             // figure out how many times to blink
             for (i=0;
                     voltage > pgm_read_byte(voltage_blinks + i);
                     i ++) {}
 
-            // blink up to five times to show voltage
+            // blink zero to five times to show voltage
             // (~0%, ~25%, ~50%, ~75%, ~100%, >100%)
             blink(i);
-            //_delay_s();  // wait at least 1 second between readouts
+            // wait between readouts
+            _delay_s(); _delay_s();
         }
+#endif // ifdef BATTCHECK
         else {  // Regular non-hidden solid mode
             set_mode(mode_idx);
             // This part of the code will mostly replace the WDT tick code.
