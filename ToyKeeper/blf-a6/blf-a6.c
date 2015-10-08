@@ -157,7 +157,6 @@
 #define USE_BATTCHECK
 //#define BATTCHECK_4bars
 #define BATTCHECK_8bars
-//#define BATTCHECK_VpT
 #define BLINK_SPEED 500
 #include "../tk-voltage.h"
 
