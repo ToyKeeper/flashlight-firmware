@@ -67,6 +67,9 @@ Summary of each project
     ToyKeeper/blf-a6/cypreus2:
         FET+1 code with an extended hidden blinky mode group
 
+    ToyKeeper/blf-a6/testedandbaked:
+        testedandbaked mod of BLF EE A6 firmware
+
     ToyKeeper/cypreus:
         TK's Sinner Cypreus full-featured clicky firmware
 
@@ -162,6 +165,7 @@ Authors
         ToyKeeper/battcheck
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
@@ -188,6 +192,9 @@ Authors
     pilotdog68:
         pilotdog68/xintd-x3
 
+    testedandbaked:
+        ToyKeeper/blf-a6/testedandbaked
+
     tterev3:
         tterev3/attiny10_starter_code
         tterev3/pic10f322-examples
@@ -211,6 +218,7 @@ Button-Type
         ToyKeeper/STAR_noinit
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
@@ -259,6 +267,7 @@ Extras
         ToyKeeper/STAR_noinit
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/starry-offtime
         pilotdog68/xintd-x3
 
@@ -272,6 +281,7 @@ Extras
         JonnyC/STAR/STAR_momentary
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         _the_/TheStar
 
@@ -283,6 +293,7 @@ Extras
     offtime-3:
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/starry-offtime
 
@@ -332,6 +343,7 @@ License
     GPLv3:
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
 
 MCU
 
@@ -358,6 +370,7 @@ MCU
         ToyKeeper/battcheck
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
@@ -374,6 +387,7 @@ MCU
     attiny25:
         ToyKeeper/battcheck
         ToyKeeper/blf-a6
+        ToyKeeper/blf-a6/testedandbaked
 
     pic10f322:
         tterev3/pic10f322-examples
@@ -385,11 +399,15 @@ Memory
         JonnyC/STAR/STAR_off_time
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/starry-offtime
         Werner/STAR_improvements
         _the_/TheStar
         pilotdog68/xintd-x3
+
+    configurable:
+        ToyKeeper/blf-a6/testedandbaked
 
     mem decay:
         ToyKeeper/STAR_noinit
@@ -422,6 +440,7 @@ Memory
         ToyKeeper/STAR_noinit
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
@@ -476,6 +495,7 @@ Modes
     SOS:
         Tamagotchi/7135x8v2
         Tido/BLF-VLD
+        ToyKeeper/blf-a6/testedandbaked
 
     battcheck:
         DrJones/luxdrv
@@ -483,6 +503,7 @@ Modes
         ToyKeeper/Ferrero_Rocher
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
@@ -505,6 +526,7 @@ Modes
         Tamagotchi/7135x8v2
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/tail-light
@@ -515,6 +537,7 @@ Modes
     config:
         DrJones/luxdrv
         ToyKeeper/blf-a6
+        ToyKeeper/blf-a6/testedandbaked
         pilotdog68/xintd-x3
         tterev3/power_cycle_light
 
@@ -522,6 +545,9 @@ Modes
         Tamagotchi/7135x8v2
         Tido/BLF-VLD
         _the_/TheStar
+
+    egg timer:
+        ToyKeeper/blf-a6/testedandbaked
 
     fade:
         Tido/BLF-VLD
@@ -559,6 +585,7 @@ Modes
         DrJones/luxdrv
         Tom_E
         ToyKeeper/blf-a6
+        ToyKeeper/blf-a6/testedandbaked
         ToyKeeper/starry-offtime
         _the_/TheStar
         tterev3/pic10f322-examples

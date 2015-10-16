@@ -1,0 +1,22 @@
+Description: testedandbaked mod of BLF EE A6 firmware
+  http://budgetlightforum.com/node/38364?page=18#comment-833125  (comment 570)
+  https://thedotaroom.com/BLF/BLF-A6-Mod.zip
+  This version has:
+  * config_star code removed (before I discovered it was not really necessary)
+  * Single mode group with 6 modes
+  * Memory selection by 16 clicks
+  * 20s turbo timeout
+  Hidden modes
+  * Strobe
+  * Turbo
+  * Biking strobe
+  * Battery check (10% steps with ADC values measured from my Attiny13A and % to voltage conversion from HKJ's tests for the efest 10440)
+  * SOS mode
+  * Egg timer
+Button-Type: clicky
+Memory: offtime, OTC, configurable
+MCU: attiny13a, attiny25
+Authors: testedandbaked, ToyKeeper
+Modes: battcheck, tactical strobe, SOS, bike flasher, config, egg timer
+Extras: dual PWM, offtime-3, hidden modes
+License: GPLv3
