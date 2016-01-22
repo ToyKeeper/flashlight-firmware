@@ -125,7 +125,7 @@
 #define TEMPERATURE_MON
 
 // Calibrate voltage and OTC in this file:
-#include "tk-calibration.h"
+#include "manker-calibration.h"
 
 /*
  * =========================================================================
