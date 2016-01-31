@@ -1,0 +1,10 @@
+Description: Show realtime voltage on a "smart" lighted tailcap
+  Run this only on a tailcap board, not a primary LED driver.
+  http://budgetlightforum.com/node/37851
+Button-Type: clicky
+Memory:
+MCU: attiny13a
+Authors: ToyKeeper
+Modes: battcheck
+Extras:
+License: GPLv3

@@ -40,7 +40,7 @@
 // re-spin in standby mode
 #define ALWAYS_SPIN_UP
 // spin at least one full circle each time in standby mode
-#define ALWAYS_FULL_SPIN
+//#define ALWAYS_FULL_SPIN
 
 // pick only one of the following
 //#define BEACON_2s
@@ -213,6 +213,14 @@ int main(void)
     WDT_on();
 
     while(1) {
+#ifndef ALWAYS_ON
+        // turn off tail light while waiting
+        go_dark();
+#endif  // ALWAYS_ON
+
+        // low power mode until WDT wakes us up
+        go_to_sleep();
+
 #ifdef ALWAYS_FULL_SPIN
         spin(6, SPIN_SPEED);
 #endif
@@ -225,13 +233,5 @@ int main(void)
         // keep the light on for a short while
         // (blink like a beacon)
         BEACON_BLINK;
-
-#ifndef ALWAYS_ON
-        // turn off tail light while waiting
-        go_dark();
-#endif  // ALWAYS_ON
-
-        // low power mode until WDT wakes us up
-        go_to_sleep();
     }
 }
