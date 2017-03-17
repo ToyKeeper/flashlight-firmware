@@ -37,17 +37,20 @@ Summary of each project
     JonnyC/STAR/STAR_off_time:
         STAR off-time
 
+    Mike_C/X85:
+        "X85" flexible firmware from Mike C
+
     Tamagotchi/7135x8v2:
         Very flexible clicky firmware with hidden modes, from fonarevka.ru
 
     Tido/BLF-VLD:
         Tido's Budget Light Forum Versatile LED Driver
 
-    Tom_E/eswBrOutCfg:
-        full-featured configurable e-switch firmware for tiny45/85
-
     Tom_E/eswitch-13:
         STAR-momentary plus strobe and 1-click off
+
+    Tom_E/narsil:
+        full-featured configurable e-switch firmware for tiny45/85
 
     ToyKeeper/DarkHorse:
         Imitation of ZebraLight's UI
@@ -66,6 +69,12 @@ Summary of each project
 
     ToyKeeper/bistro:
         "Bistro" firmware for clicky-switch lights
+
+    ToyKeeper/bistro/biscotti:
+        "Biscotti" firmware for Convoy S-series and C8 lights
+
+    ToyKeeper/bistro/tripledown:
+        "Bistro tripledown" firmware for clicky-switch lights
 
     ToyKeeper/blf-a6:
         BLF EE A6 special edition (FET+1) firmware and derivatives
@@ -106,6 +115,9 @@ Summary of each project
     dthoang:
         Olight Baton-like UI
 
+    gchart/babka:
+        "Babka" firmware for nanjg-style drivers
+
     hello_world:
         quick example to help test if flashing hardware works
 
@@ -145,12 +157,16 @@ Authors
         JonnyC/STAR/STAR_momentary
         JonnyC/STAR/STAR_off_time
         Tom_E/eswitch-13
+        Tom_E/narsil
         ToyKeeper/STAR_1mode
         ToyKeeper/STAR_noinit
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
         Werner/STAR_improvements
         dthoang
+
+    Mike C:
+        Mike_C/X85
 
     Tamagotchi:
         Tamagotchi/7135x8v2
@@ -159,8 +175,8 @@ Authors
         Tido/BLF-VLD
 
     Tom E:
-        Tom_E/eswBrOutCfg
         Tom_E/eswitch-13
+        Tom_E/narsil
 
     ToyKeeper:
         ToyKeeper/Ferrero_Rocher
@@ -168,6 +184,8 @@ Authors
         ToyKeeper/STAR_noinit
         ToyKeeper/battcheck
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -175,6 +193,7 @@ Authors
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
         ToyKeeper/uv
+        gchart/babka
         pilotdog68/xintd-x3
 
     Werner:
@@ -189,6 +208,9 @@ Authors
 
     dthoang:
         dthoang
+
+    gchart:
+        gchart/babka
 
     odd:
         odd/MGdriver
@@ -213,11 +235,14 @@ Button-Type
         JonnyC/STAR/STAR
         JonnyC/STAR/STAR_dual_switch
         JonnyC/STAR/STAR_off_time
+        Mike_C/X85
         Tamagotchi/7135x8v2
         Tido/BLF-VLD
         ToyKeeper/STAR_1mode
         ToyKeeper/STAR_noinit
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -228,6 +253,7 @@ Button-Type
         Werner/STAR_improvements
         _the_/TheStar
         alexvh/basic_off_time_driver
+        gchart/babka
         odd/MGdriver
         pilotdog68/xintd-x3
         tterev3/pic10f322-examples
@@ -238,8 +264,9 @@ Button-Type
         JonnyC/STAR/MTN_momentary_temp
         JonnyC/STAR/STAR_dual_switch
         JonnyC/STAR/STAR_momentary
-        Tom_E/eswBrOutCfg
+        Mike_C/X85
         Tom_E/eswitch-13
+        Tom_E/narsil
         ToyKeeper/Ferrero_Rocher
         Werner/STAR_improvements
         dthoang
@@ -251,6 +278,9 @@ Extras
     4 power channels?:
         Tamagotchi/7135x8v2
 
+    ?:
+        Mike_C/X85
+
     Baton UI:
         ToyKeeper/Ferrero_Rocher
         dthoang
@@ -258,12 +288,15 @@ Extras
     LVP:
         Tamagotchi/7135x8v2
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
+        gchart/babka
 
     battery indicator LEDs:
         ToyKeeper/Ferrero_Rocher
 
     config mode:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
 
     dual PWM:
         JonnyC/STAR/STAR
@@ -286,23 +319,28 @@ Extras
     hidden modes:
         JonnyC/STAR/STAR_momentary
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
         _the_/TheStar
 
     lock-out:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
 
     mode groups:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
+        gchart/babka
         odd/MGdriver
         pilotdog68/xintd-x3
 
     offtime-3:
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -325,6 +363,7 @@ Extras
 
     soft start:
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
 
     special effect demo:
         DrJones/heartbeat
@@ -347,10 +386,14 @@ Extras
 
     thermal regulation:
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
 
     thermal step-down:
         JonnyC/STAR/MTN_momentary_temp
         Tamagotchi/7135x8v2
+
+    triple PWM:
+        ToyKeeper/bistro/tripledown
 
 License
 
@@ -358,14 +401,22 @@ License
         Tido/BLF-VLD
 
     GPLv3:
+        Mike_C/X85
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        gchart/babka
 
 MCU
 
     attiny10:
         tterev3/attiny10_starter_code
+
+    attiny13:
+        ToyKeeper/bistro/biscotti
+        gchart/babka
 
     attiny13a:
         DrJones/MiniDrv
@@ -403,15 +454,22 @@ MCU
     attiny25:
         ToyKeeper/battcheck
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
 
     attiny45:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
 
     attiny85:
-        Tom_E/eswBrOutCfg
+        Mike_C/X85
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
 
     pic10f322:
         tterev3/pic10f322-examples
@@ -421,7 +479,9 @@ Memory
 
     OTC:
         JonnyC/STAR/STAR_off_time
+        Mike_C/X85
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -431,8 +491,12 @@ Memory
         pilotdog68/xintd-x3
 
     configurable:
-        Tom_E/eswBrOutCfg
+        Mike_C/X85
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
+        gchart/babka
 
     mem decay:
         ToyKeeper/STAR_noinit
@@ -462,8 +526,11 @@ Memory
 
     offtime:
         JonnyC/STAR/STAR_off_time
+        Mike_C/X85
         ToyKeeper/STAR_noinit
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -473,6 +540,7 @@ Memory
         Werner/STAR_improvements
         _the_/TheStar
         alexvh/basic_off_time_driver
+        gchart/babka
         odd/MGdriver
         pilotdog68/xintd-x3
         tterev3/pic10f322-examples
@@ -514,22 +582,29 @@ Modes
     5-minute timer:
         DrJones/luxdrv
 
+    ?:
+        Mike_C/X85
+
     OTC calibrator:
         ToyKeeper/battcheck
 
     SOS:
         Tamagotchi/7135x8v2
         Tido/BLF-VLD
+        ToyKeeper/bistro/biscotti
+        gchart/babka
 
     alpine beacon:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
 
     battcheck:
         DrJones/luxdrv
         Tamagotchi/7135x8v2
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/Ferrero_Rocher
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -537,24 +612,28 @@ Modes
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
         ToyKeeper/uv
+        gchart/babka
 
     battcheck calibrator:
         ToyKeeper/battcheck
 
     beacon:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/tail-light
         ToyKeeper/uv
         _the_/TheStar
+        gchart/babka
         odd/MGdriver
         tterev3/power_cycle_light
 
     bike flasher:
         Tamagotchi/7135x8v2
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
         ToyKeeper/cypreus
@@ -566,9 +645,12 @@ Modes
 
     config:
         DrJones/luxdrv
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
+        gchart/babka
         pilotdog68/xintd-x3
         tterev3/power_cycle_light
 
@@ -589,6 +671,7 @@ Modes
 
     muggle:
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
 
     party strobe:
         ToyKeeper/blf-a6/cypreus2
@@ -600,8 +683,9 @@ Modes
         Tamagotchi/7135x8v2
 
     police strobe:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
 
     ramp:
         DrJones/luxdrv
@@ -610,6 +694,7 @@ Modes
 
     random strobe:
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
 
     soft lock:
         ToyKeeper/Ferrero_Rocher
@@ -621,12 +706,15 @@ Modes
 
     tactical strobe:
         DrJones/luxdrv
-        Tom_E/eswBrOutCfg
         Tom_E/eswitch-13
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/biscotti
+        ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/starry-offtime
         _the_/TheStar
+        gchart/babka
         tterev3/pic10f322-examples
 
     variable heartbeat:
@@ -638,8 +726,9 @@ Modes
         ToyKeeper/s7
 
     voltage readout:
-        Tom_E/eswBrOutCfg
+        Tom_E/narsil
         ToyKeeper/bistro
+        ToyKeeper/bistro/tripledown
 
 TODO
 
