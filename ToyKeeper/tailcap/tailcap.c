@@ -133,6 +133,7 @@ inline uint8_t pick_step() {
     // Return an int, number of "blinks", for approximate battery charge
     // Uses the table above for return values
     uint8_t i, voltage;
+    // TODO: take the average of a few measurements?
     voltage = get_voltage();
     // figure out how many times to blink
     for (i=0;
@@ -143,9 +144,8 @@ inline uint8_t pick_step() {
 
 void spin_to_voltage() {
     uint8_t i = pick_step();
-    //blink(i); _delay_s();
+    //blink(i); _delay_s();  // debugging
     spin(i, SPIN_SPEED*2);
-    //spin(i, SPIN_SPEED*8);
 }
 
 void direct_to_voltage() {
@@ -154,7 +154,7 @@ void direct_to_voltage() {
 }
 
 inline void WDT_on() {
-    // Setup watchdog timer to only interrupt, not reset, every 16ms.
+    // Setup watchdog timer to only interrupt, not reset, every so often.
     cli();                          // Disable interrupts
     wdt_reset();                    // Reset the WDT
     WDTCR |= (1<<WDCE) | (1<<WDE);  // Start timed sequence
@@ -176,15 +176,19 @@ inline void WDT_on() {
 ISR(WDT_vect) {
     // No need to do anything here...
     // ... just wake up
+    // TODO: if we powered anything down for sleep, power it back up here
 }
 
 void go_to_sleep() {
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     sleep_mode();
+    // TODO: shut more stuff down for lower-power sleep
 }
 
 int main(void)
 {
+    // TODO: under-clock the MCU for lower power?
+
     // Set pins to output
     DDRB = (1<<RED_PIN) | (1<<GRN_PIN) | (1<<BLU_PIN);
 
@@ -205,33 +209,46 @@ int main(void)
         spin(6, SPIN_SPEED);
     }
 
+    // stop at the color matching battery voltage
     spin_to_voltage();
+    // ... then wait a few seconds to give the user time to read the color
     _delay_s();
     _delay_s();
     _delay_s();
 
+    // start the beacon timer
     WDT_on();
 
+    // enter long-term standby mode
+    // (will likely run this loop for hours/days/weeks at a time)
     while(1) {
 #ifndef ALWAYS_ON
         // turn off tail light while waiting
         go_dark();
-#endif  // ALWAYS_ON
+#endif  // not ALWAYS_ON
 
         // low power mode until WDT wakes us up
         go_to_sleep();
 
+        // after the WDT wakes us up, show the battery status
 #ifdef ALWAYS_FULL_SPIN
+        // go around once first?
         spin(6, SPIN_SPEED);
 #endif
 #ifdef ALWAYS_SPIN_UP
+        // animated status
         spin_to_voltage();
 #else
+        // non-animated status
         direct_to_voltage();
 #endif
 
+        // TODO: add an option to blink out actual voltage?
+        // (volts + tenths style)
+
         // keep the light on for a short while
         // (blink like a beacon)
+        // (it's already on; all we have to do here is wait)
         BEACON_BLINK;
     }
 }
