@@ -70,6 +70,7 @@
 #define VOLTAGE_MON                 // Comment out to disable
 #define OWN_DELAY                   // Should we use the built-in delay or our own?
 #define USE_FINE_DELAY
+#define USE_DELAY_S
 
 #define FAST_PWM_START      10      // Anything under this will use phase-correct
 // Lumen measurements used a Nichia 219B at 1900mA in a Convoy S7 host
@@ -80,7 +81,7 @@
 #define MODE_HIGHER         255     // 255: 342 lm
 // If you change these, you'll probably want to change the "modes" array below
 // How many non-blinky modes will we have?
-#define SOLID_MODES           5
+#define SOLID_MODES           6
 // battery check mode index
 #define BATT_CHECK_MODE       1+SOLID_MODES
 // How many beacon modes will we have (without background light on)?
@@ -127,7 +128,9 @@ volatile uint8_t noinit_mode __attribute__ ((section (".noinit")));
 
 // Modes (hardcoded to save space)
 const uint8_t modes[] = { // high enough to handle all
-    MODE_MOON, MODE_LOW, MODE_MED, MODE_HIGH, MODE_HIGHER, // regular solid modes
+    MODE_MOON,  // regular solid mode
+    MODE_LOW,   // "good night" mode
+    MODE_LOW, MODE_MED, MODE_HIGH, MODE_HIGHER, // regular solid modes
     MODE_MED, // battery check mode
     MODE_HIGHER, // heartbeat beacon
     82, 41, 15, // constant-speed strobe modes (12 Hz, 24 Hz, 60 Hz)
@@ -172,6 +175,32 @@ void blink(uint8_t val)
     }
 }
 #endif
+
+void battcheck_mode()
+{
+    PWM_LVL = 0;
+    get_voltage();  _delay_ms(200);  // the first reading is junk
+#ifdef BATTCHECK_VpT
+    uint8_t result = battcheck();
+    blink(result >> 5, BLINK_SPEED/8);
+    _delay_ms(BLINK_SPEED);
+    blink(1,5);
+    _delay_ms(BLINK_SPEED*3/2);
+    blink(result & 0b00011111, BLINK_SPEED/8);
+#else
+    blink(battcheck());
+#endif  // BATTCHECK_VpT
+    //_delay_ms(2000);  // wait at least 2 seconds between readouts
+    _delay_s();
+}
+
+void poweroff()
+{
+    PWM_LVL = 0;
+    ADCSRA &= ~(1<<7); //ADC off
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_mode();
+}
 
 int main(void)
 {
@@ -230,22 +259,49 @@ int main(void)
     uint8_t voltage;
 #endif
     while(1) {
-        if(mode_idx < SOLID_MODES) { // Just stay on at a given brightness
-            sleep_mode();
+        if(mode_idx == 1) {  // "goodnight" mode
+            // WARNING: this mode bypasses LVP; don't use on a low cell
+            // check voltage first, just because
+            battcheck_mode();
+            TCCR0A = 0x21; // phase correct PWM
+            // ramp up relatively quickly from moon to low
+            for(i=MODE_MOON; i<=MODE_LOW; i++) {
+                PWM_LVL = i;
+                _delay_ms(250);
+            }
+            // ramp back down over about an hour (well, 45 minutes)
+            // measured at 2.78mA to 12.31mA
+            // TODO: add dithering between levels
+            for(i=MODE_LOW; i>=MODE_MOON; i--) {
+                PWM_LVL = i;
+                // how long the down ramp should last, in seconds
+                #define GOODNIGHT_TIME 60*60
+                // how long does _delay_s() actually last, in seconds?
+                #define ONE_SECOND 0.887
+                #define GOODNIGHT_STEPS (1+MODE_LOW-MODE_MOON)
+                #define GOODNIGHT_LOOPS (uint8_t)((GOODNIGHT_TIME) / ((2*ONE_SECOND) * GOODNIGHT_STEPS))
+                // NUM_LOOPS = (60*60) / ((2*ONE_SECOND) * (1+MODE_LOW-MODE_MOON))
+                // (where ONE_SECOND is how many seconds _delay_s() actually lasts)
+                // (in my case it's about 0.89)
+                // 184 == about an hour
+                //for(j=0; j<184; j++) {
+                for(j=0; j<GOODNIGHT_LOOPS; j++) {
+                    _delay_s();
+                    _delay_s();
+                    //_delay_ms(10);
+                }
+            }
+            // stay a bit longer on moon
+            //for(j=0; j<255; j++) { _delay_s(); }
+            // then shut off since I'm probably asleep by now
+            // (measured at 0.14mA)
+            poweroff();
+        } else if(mode_idx < SOLID_MODES) { // Just stay on at a given brightness
+            //sleep_mode();
+            _delay_s();
         } else if (mode_idx < BATT_CHECK_MODE) {
-            PWM_LVL = 0;
-            get_voltage();  _delay_ms(200);  // the first reading is junk
-#ifdef BATTCHECK_VpT
-            uint8_t result = battcheck();
-            blink(result >> 5, BLINK_SPEED/8);
-            _delay_ms(BLINK_SPEED);
-            blink(1,5);
-            _delay_ms(BLINK_SPEED*3/2);
-            blink(result & 0b00011111, BLINK_SPEED/8);
-#else
-            blink(battcheck());
-#endif  // BATTCHECK_VpT
-            _delay_ms(2000);  // wait at least 2 seconds between readouts
+            battcheck_mode();
+            _delay_s();
         } else if (mode_idx < SINGLE_BEACON_MODES) { // heartbeat flasher
             PWM_LVL = modes[SOLID_MODES-1];
             _delay_ms(1);
@@ -305,14 +361,14 @@ int main(void)
                     mode_idx = 0;
                 } else { // Already at the lowest mode
                     // Turn off the light
-                    PWM_LVL = 0;
+                    //PWM_LVL = 0;
                     // Power down as many components as possible
-                    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-                    sleep_mode();
+                    poweroff();
                 }
                 lowbatt_cnt = 0;
                 // Wait at least 1 second before lowering the level again
-                _delay_ms(1000);  // this will interrupt blinky modes
+                //_delay_ms(1000);  // this will interrupt blinky modes
+                _delay_s();
             }
 
             // Make sure conversion is running for next time through
