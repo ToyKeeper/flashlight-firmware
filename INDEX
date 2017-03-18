@@ -82,6 +82,9 @@ Summary of each project
     ToyKeeper/blf-a6/cypreus2:
         FET+1 code with an extended hidden blinky mode group
 
+    ToyKeeper/crescendo:
+        "Crescendo" firmware; ramping UI for clicky-switch lights
+
     ToyKeeper/cypreus:
         TK's Sinner Cypreus full-featured clicky firmware
 
@@ -93,6 +96,9 @@ Summary of each project
 
     ToyKeeper/tail-light:
         Biking tail light / head light firmware
+
+    ToyKeeper/tailcap:
+        Show realtime voltage on a "smart" lighted tailcap
 
     ToyKeeper/uv:
         S7-like code intended for use on a UV blacklight
@@ -188,10 +194,12 @@ Authors
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
+        ToyKeeper/tailcap
         ToyKeeper/uv
         gchart/babka
         pilotdog68/xintd-x3
@@ -245,10 +253,12 @@ Button-Type
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
+        ToyKeeper/tailcap
         ToyKeeper/uv
         Werner/STAR_improvements
         _the_/TheStar
@@ -290,6 +300,7 @@ Extras
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
         ToyKeeper/bistro/tripledown
+        ToyKeeper/crescendo
         gchart/babka
 
     battery indicator LEDs:
@@ -357,6 +368,7 @@ Extras
 
     ramping UI:
         ToyKeeper/Ferrero_Rocher
+        ToyKeeper/crescendo
 
     self-adjusting moon:
         ToyKeeper/cypreus
@@ -407,6 +419,8 @@ License
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
+        ToyKeeper/tailcap
         gchart/babka
 
 MCU
@@ -416,6 +430,7 @@ MCU
 
     attiny13:
         ToyKeeper/bistro/biscotti
+        ToyKeeper/crescendo
         gchart/babka
 
     attiny13a:
@@ -442,6 +457,7 @@ MCU
         ToyKeeper/s7
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
+        ToyKeeper/tailcap
         ToyKeeper/uv
         Werner/STAR_improvements
         Werner/candleflicker
@@ -457,12 +473,14 @@ MCU
         ToyKeeper/bistro/biscotti
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
+        ToyKeeper/crescendo
 
     attiny45:
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
         ToyKeeper/bistro/tripledown
+        ToyKeeper/crescendo
 
     attiny85:
         Mike_C/X85
@@ -470,6 +488,7 @@ MCU
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
         ToyKeeper/bistro/tripledown
+        ToyKeeper/crescendo
 
     pic10f322:
         tterev3/pic10f322-examples
@@ -533,6 +552,7 @@ Memory
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
@@ -558,6 +578,7 @@ Memory
 
     short-cycle:
         DrJones/luxdrv
+        ToyKeeper/crescendo
         _the_/TheStar
 
     star-configurable:
@@ -592,6 +613,7 @@ Modes
         Tamagotchi/7135x8v2
         Tido/BLF-VLD
         ToyKeeper/bistro/biscotti
+        ToyKeeper/crescendo
         gchart/babka
 
     alpine beacon:
@@ -607,10 +629,12 @@ Modes
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/starry-offtime
         ToyKeeper/tail-light
+        ToyKeeper/tailcap
         ToyKeeper/uv
         gchart/babka
 
@@ -636,6 +660,7 @@ Modes
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
         ToyKeeper/cypreus
         ToyKeeper/s7
         ToyKeeper/tail-light
@@ -662,6 +687,12 @@ Modes
     fade:
         Tido/BLF-VLD
 
+    goodnight:
+        ToyKeeper/crescendo
+
+    heart beacon:
+        ToyKeeper/crescendo
+
     hidden moon:
         Tamagotchi/7135x8v2
 
@@ -686,10 +717,12 @@ Modes
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
+        ToyKeeper/crescendo
 
     ramp:
         DrJones/luxdrv
         Tamagotchi/7135x8v2
+        ToyKeeper/crescendo
         alexvh/basic_off_time_driver
 
     random strobe:
@@ -712,6 +745,7 @@ Modes
         ToyKeeper/bistro/biscotti
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
+        ToyKeeper/crescendo
         ToyKeeper/starry-offtime
         _the_/TheStar
         gchart/babka
