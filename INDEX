@@ -318,6 +318,7 @@ Extras
         ToyKeeper/bistro
         ToyKeeper/blf-a6
         ToyKeeper/blf-a6/cypreus2
+        ToyKeeper/crescendo
         ToyKeeper/starry-offtime
         pilotdog68/xintd-x3
 
@@ -519,6 +520,7 @@ Memory
 
     mem decay:
         ToyKeeper/STAR_noinit
+        ToyKeeper/crescendo
         ToyKeeper/s7
         ToyKeeper/uv
         alexvh/basic_off_time_driver
