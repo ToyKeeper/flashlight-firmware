@@ -62,8 +62,10 @@
 // Common nanjg driver
 // ../../bin/level_calc.py 1 64 7135 4 0.25 1000
 //#define RAMP_CH1   4,4,4,4,4,5,5,5,5,6,6,7,7,8,9,10,11,12,13,14,16,17,19,21,23,25,27,29,32,34,37,40,43,47,50,54,58,62,66,71,75,80,86,91,97,103,109,115,122,129,136,143,151,159,167,176,184,194,203,213,223,233,244,255
+// ../../bin/level_calc.py 1 96 7135 4 0.25 1000
+#define RAMP_CH1   4,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,7,7,7,8,8,9,9,10,11,11,12,13,14,15,16,17,18,19,20,21,22,24,25,26,28,30,31,33,35,37,39,41,43,45,47,49,52,54,57,60,62,65,68,71,74,78,81,84,88,92,95,99,103,107,111,116,120,124,129,134,139,144,149,154,159,165,170,176,182,188,194,200,207,213,220,226,233,240,248,255
 // ../../bin/level_calc.py 1 128 7135 4 0.25 1000
-#define RAMP_CH1   4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,9,9,10,10,11,11,12,12,13,13,14,15,15,16,17,18,19,19,20,21,22,23,24,25,26,27,29,30,31,32,34,35,36,38,39,41,42,44,46,47,49,51,53,55,57,59,61,63,65,67,69,72,74,76,79,81,84,86,89,92,95,98,100,103,106,109,113,116,119,122,126,129,133,136,140,144,148,152,155,159,164,168,172,176,181,185,189,194,199,203,208,213,218,223,228,233,239,244,249,255
+//#define RAMP_CH1   4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,9,9,10,10,11,11,12,12,13,13,14,15,15,16,17,18,19,19,20,21,22,23,24,25,26,27,29,30,31,32,34,35,36,38,39,41,42,44,46,47,49,51,53,55,57,59,61,63,65,67,69,72,74,76,79,81,84,86,89,92,95,98,100,103,106,109,113,116,119,122,126,129,133,136,140,144,148,152,155,159,164,168,172,176,181,185,189,194,199,203,208,213,218,223,228,233,239,244,249,255
 
 // MTN17DDm FET+1 tiny25, 36 steps
 // ../../bin/level_calc.py 2 36 7135 2 0.25 140 FET 1 10 1300
@@ -110,6 +112,11 @@
 // ms per normal-speed blink
 #define BLINK_SPEED         (500/4)
 
+// Uncomment this if you want the ramp to stop when it reaches maximum
+//#define STOP_AT_TOP     HOP_ON_POP
+// Uncomment this if you want it to blink when it reaches maximum
+#define BLINK_AT_TOP
+
 // 255 is the default eeprom state, don't use
 // (actually, no longer applies...  using a different algorithm now)
 // (previously tried to store mode type plus ramp level in a single byte
@@ -119,28 +126,29 @@
 #define TURBO     254
 #define RAMP      253
 #define STEADY    252
-//#define MEMORY    251
-#define BATTCHECK 250
-//#define TEMP_CAL_MODE 249  FIXME: NOT IMPLEMENTED YET
-#define BIKING_MODE 248   // steady on with pulses at 1Hz
-//#define BIKING_MODE2 247   // steady on with pulses at 1Hz
+#define BATTCHECK 251
+//#define MEMORY    250
+//#define MEMTOGGLE 249   // Extra mode to (en/dis)able memory (requires MEMORY)
+//#define TEMP_CAL_MODE 248  FIXME: NOT IMPLEMENTED YET
+#define BIKING_MODE 247   // steady on with pulses at 1Hz
+//#define BIKING_MODE2 246   // steady on with pulses at 1Hz
 // comment out to use minimal version instead (smaller)
 #define FULL_BIKING_MODE
 // Required for any of the strobes below it
 #define ANY_STROBE
-#define STROBE    246         // Simple tactical strobe
-//#define POLICE_STROBE 245     // 2-speed tactical strobe
-// FIXME: random strobe not tested yet
-//#define RANDOM_STROBE 244     // variable-speed tactical strobe
-//#define SOS 243               // distress signal
-#define HEART_BEACON 242      // 1Hz heartbeat-pattern beacon
+#define STROBE    245         // Simple tactical strobe
+//#define POLICE_STROBE 244     // 2-speed tactical strobe
+//#define RANDOM_STROBE 243     // variable-speed tactical strobe
+//#define SOS 242               // distress signal
+#define HEART_BEACON 241      // 1Hz heartbeat-pattern beacon
 // next line required for any of the party strobes to work
 #define PARTY_STROBES
-#define PARTY_STROBE12 241    // 12Hz party strobe
-#define PARTY_STROBE24 240    // 24Hz party strobe
-#define PARTY_STROBE60 239    // 60Hz party strobe
-//#define PARTY_VARSTROBE1 238  // variable-speed party strobe (slow)
-//#define PARTY_VARSTROBE2 237  // variable-speed party strobe (fast)
+#define PARTY_STROBE12 240    // 12Hz party strobe
+#define PARTY_STROBE24 239    // 24Hz party strobe
+#define PARTY_STROBE60 238    // 60Hz party strobe
+//#define PARTY_VARSTROBE1 237  // variable-speed party strobe (slow)
+//#define PARTY_VARSTROBE2 236  // variable-speed party strobe (fast)
+#define GOODNIGHT 235         // hour-long ramp down then poweroff
 
 // thermal step-down
 //#define TEMPERATURE_MON  FIXME: NOT IMPLEMENTED YET
@@ -186,6 +194,9 @@
 #ifdef TEMPERATURE_MON
 uint8_t maxtemp = 79;      // temperature step-down threshold
 #endif
+#ifdef MEMTOGGLE
+uint8_t memory;
+#endif
 // Other state variables
 uint8_t eepos;
 uint8_t saved_mode_idx = 0;
@@ -202,6 +213,15 @@ uint8_t next_mode_num __attribute__ ((section (".noinit")));
 
 uint8_t modes[] = {
     RAMP, STEADY, TURBO, BATTCHECK,
+#ifdef GOODNIGHT
+    GOODNIGHT,
+#endif
+#ifdef BIKING_MODE2
+    BIKING_MODE2,
+#endif
+#ifdef BIKING_MODE
+    BIKING_MODE,
+#endif
 #ifdef RANDOM_STROBE
     RANDOM_STROBE,
 #endif
@@ -210,12 +230,6 @@ uint8_t modes[] = {
 #endif
 #ifdef STROBE
     STROBE,
-#endif
-#ifdef BIKING_MODE2
-    BIKING_MODE2,
-#endif
-#ifdef BIKING_MODE
-    BIKING_MODE,
 #endif
 #ifdef HEART_BEACON
     HEART_BEACON,
@@ -237,6 +251,9 @@ uint8_t modes[] = {
 #endif
 #ifdef SOS
     SOS,
+#endif
+#ifdef MEMTOGGLE
+    MEMTOGGLE,
 #endif
 };
 
@@ -264,9 +281,23 @@ void save_mode() {  // save the current mode index (with wear leveling)
     eeprom_write_byte((uint8_t *)(eepos+1), ramp_level);
 }
 
+#ifdef MEMTOGGLE
+#define OPT_memory (EEPSIZE-1)
+void save_state() {
+    save_mode();
+    eeprom_write_byte((uint8_t *)OPT_memory, memory);
+}
+#else
 #define save_state save_mode
+#endif
 
 void restore_state() {
+    #ifdef MEMTOGGLE
+    // memory is either 1 or 0
+    // (if it's unconfigured, 0xFF, clip it)
+    memory = eeprom_read_byte((uint8_t *)OPT_memory) & 0x01;
+    #endif
+
     // find the mode index and last brightness level
     uint8_t eep;
     for(eepos=0; eepos<WEAR_LVL_LEN; eepos+=2) {
@@ -294,7 +325,8 @@ inline void next_mode() {
     mode_idx += 1;
     if (mode_idx >= sizeof(modes)) {
         // Wrap around
-        mode_idx = 0;
+        // (wrap to steady mode (1), not ramp (0))
+        mode_idx = 1;
     }
 }
 
@@ -396,6 +428,33 @@ inline void SOS_mode() {
 }
 #endif
 
+#ifdef BIKING_MODE
+inline void biking_mode(uint8_t lo, uint8_t hi) {
+    #ifdef FULL_BIKING_MODE
+    // normal version
+    uint8_t i;
+    for(i=0;i<4;i++) {
+        //set_output(255,0);
+        set_mode(hi);
+        _delay_4ms(2);
+        //set_output(0,255);
+        set_mode(lo);
+        _delay_4ms(15);
+    }
+    //_delay_ms(720);
+    _delay_s();
+    #else  // smaller bike mode
+    // small/minimal version
+    set_mode(hi);
+    //set_output(255,0);
+    _delay_4ms(4);
+    set_mode(lo);
+    //set_output(0,255);
+    _delay_s();
+    #endif  // ifdef FULL_BIKING_MODE
+}
+#endif
+
 #ifdef TEMPERATURE_MON
 uint8_t get_temperature() {
     ADC_on_temperature();
@@ -411,6 +470,19 @@ uint8_t get_temperature() {
     return temp;
 }
 #endif  // TEMPERATURE_MON
+
+#ifdef GOODNIGHT
+void poweroff() {
+#else
+inline void poweroff() {
+#endif
+    // Turn off main LED
+    set_level(0);
+    // Power down as many components as possible
+    ADCSRA &= ~(1<<7); //ADC off
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_mode();
+}
 
 int main(void)
 {
@@ -448,7 +520,11 @@ int main(void)
         next_mode_num = 255;
         mode_idx = 0;
         #ifdef MEMORY
+        #ifdef MEMTOGGLE
+        if (memory) { mode_override = MEMORY; }
+        #else
         mode_override = MEMORY;
+        #endif  // ifdef MEMTOGGLE
         #endif  // ifdef MEMORY
     }
     long_press = 0;
@@ -497,8 +573,10 @@ int main(void)
             mode_idx = saved_mode_idx;
             ramp_level = saved_ramp_level;
             // ... and skip the rest of the blinkies
-            next_mode_num = 1;
-            fast_presses = 0;
+            //next_mode_num = 1;  // redundant
+            // reset to avoid potential wrong state changes
+            //fast_presses = 0;  // redundant
+            // remember for next time
             save_mode();
         }
         #endif
@@ -538,27 +616,31 @@ int main(void)
             // don't want this confusing us any more
             fast_presses = 0;
 
+            // Just in case (SRAM could have partially decayed)
+            //ramp_dir = (ramp_dir == 1) ? 1 : -1;
+            // Do the actual ramp
+            for (;; ramp_level += ramp_dir) {
+                set_mode(ramp_level);
+                _delay_4ms(RAMP_TIME/RAMP_SIZE/4);
+                if (
+                    ((ramp_dir > 0) && (ramp_level >= RAMP_SIZE))
+                    ||
+                    ((ramp_dir < 0) && (ramp_level <= 1))
+                    )
+                    break;
+            }
             if (ramp_dir == 1) {
-                // ramp up
-                for(; ramp_level<RAMP_SIZE; ramp_level++)
-                {
-                    set_mode(ramp_level);
-                    _delay_4ms(RAMP_TIME/RAMP_SIZE/4);
-                }
-                ramp_dir = -1;  // turn around afterward
+                #ifdef STOP_AT_TOP
+                // go to steady mode
+                mode_idx += 1;
+                #endif
+                #ifdef BLINK_AT_TOP
                 // blink at the top
                 set_mode(0);
                 _delay_4ms(2);
-                set_mode(ramp_level);
-            } else {
-                // ramp down
-                for(; ramp_level>1; ramp_level--)
-                {
-                    set_mode(ramp_level);
-                    _delay_4ms(RAMP_TIME/RAMP_SIZE/4);
-                }
-                ramp_dir = 1;  // turn around afterward
+                #endif
             }
+            ramp_dir = -ramp_dir;
         }
 
         // normal flashlight mode
@@ -608,7 +690,11 @@ int main(void)
         else if (mode == RANDOM_STROBE) {
             // pseudo-random strobe
             uint8_t ms = (34 + (pgm_rand() & 0x3f))>>2;
-            strobe(ms, ms);
+            //strobe(ms, ms);
+            set_level(RAMP_SIZE);
+            _delay_4ms(ms);
+            set_level(0);
+            _delay_4ms(ms);
             //strobe(ms, ms);
         }
         #endif // ifdef RANDOM_STROBE
@@ -616,44 +702,14 @@ int main(void)
         #ifdef BIKING_MODE
         else if (mode == BIKING_MODE) {
             // 2-level stutter beacon for biking and such
-            #ifdef FULL_BIKING_MODE
-            // normal version
-            uint8_t i;
-            for(i=0;i<4;i++) {
-                //set_output(255,0);
-                set_mode(RAMP_SIZE);
-                _delay_4ms(2);
-                //set_output(0,255);
-                set_mode(RAMP_SIZE/2);
-                _delay_4ms(15);
-            }
-            //_delay_ms(720);
-            _delay_s();
-            #else  // smaller bike mode
-            // small/minimal version
-            set_mode(RAMP_SIZE);
-            //set_output(255,0);
-            _delay_4ms(4);
-            set_mode(RAMP_SIZE/2);
-            //set_output(0,255);
-            _delay_s();
-            #endif  // ifdef FULL_BIKING_MODE
+            biking_mode(RAMP_SIZE/2, RAMP_SIZE);
         }
         #endif  // ifdef BIKING_MODE
 
         #ifdef BIKING_MODE2
         else if (mode == BIKING_MODE2) {
             // 2-level stutter beacon for biking and such
-            // normal version
-            uint8_t i;
-            for(i=0;i<4;i++) {
-                set_mode(RAMP_SIZE/2);
-                _delay_4ms(2);
-                set_mode(RAMP_SIZE/4);
-                _delay_4ms(15);
-            }
-            _delay_4ms(720/4);
-            //_delay_s();
+            biking_mode(RAMP_SIZE/4, RAMP_SIZE/2);
         }
         #endif  // ifdef BIKING_MODE
 
@@ -737,6 +793,60 @@ int main(void)
         }
         #endif // ifdef BATTCHECK
 
+        #ifdef GOODNIGHT
+        // "good night" mode, slowly ramps down and shuts off
+        else if (mode == GOODNIGHT) {
+            uint8_t i, j;
+            #define GOODNIGHT_TOP (RAMP_SIZE/6)
+            // ramp up instead of going directly to the top level
+            // (probably pointless in this UI)
+            /*
+            for (i=1; i<=GOODNIGHT_TOP; i++) {
+                set_mode(i);
+                _delay_4ms(2*RAMP_TIME/RAMP_SIZE/4);
+            }
+            */
+            // ramp down over about an hour
+            for(i=GOODNIGHT_TOP; i>=1; i--) {
+                set_mode(i);
+                // how long the down ramp should last, in seconds
+                #define GOODNIGHT_TIME 60*60
+                // how long does _delay_s() actually last, in seconds?
+                // (calibrate this per driver, probably)
+                #define ONE_SECOND 1.03
+                #define GOODNIGHT_STEPS (1+GOODNIGHT_TOP)
+                #define GOODNIGHT_LOOPS (uint8_t)((GOODNIGHT_TIME) / ((2*ONE_SECOND) * GOODNIGHT_STEPS))
+                // NUM_LOOPS = (60*60) / ((2*ONE_SECOND) * (1+MODE_LOW-MODE_MOON))
+                // (where ONE_SECOND is how many seconds _delay_s() actually lasts)
+                // (in my case it's about 0.89)
+                for(j=0; j<GOODNIGHT_LOOPS; j++) {
+                    _delay_s();
+                    _delay_s();
+                    //_delay_ms(10);
+                }
+            }
+            poweroff();
+        }
+        #endif // ifdef GOODNIGHT
+
+        #ifdef MEMTOGGLE
+        // turn memory on/off
+        // (click during the "buzz" to change the setting)
+        else if (mode == MEMTOGGLE) {
+            // warn the user and give them a moment to tap to skip this mode
+            blink(8, 12/4);
+            _delay_s();
+
+            mode_idx = 1;
+            memory ^= 1;
+            save_state();
+            blink(64, 12/4);
+            memory ^= 1;
+            save_state();
+            _delay_s();
+        }
+        #endif  // ifdef MEMTOGGLE
+
         else {  // shouldn't happen
         }
         fast_presses = 0;
@@ -773,10 +883,7 @@ int main(void)
                         //actual_level = (actual_level >> 1);
                     } else { // Already at the lowest mode
                         // Turn off the light
-                        set_level(0);
-                        // Power down as many components as possible
-                        set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-                        sleep_mode();
+                        poweroff();
                     }
                     set_mode(ramp_level);
                 }
