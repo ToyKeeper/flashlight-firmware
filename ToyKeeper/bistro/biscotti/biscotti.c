@@ -55,12 +55,6 @@
  * Settings to modify per driver
  */
 
-// FIXME: make 1-channel vs 2-channel power a single #define option
-#define FAST 0x23           // fast PWM channel 1 only
-#define PHASE 0x21          // phase-correct PWM channel 1 only
-//#define FAST 0xA3           // fast PWM both channels
-//#define PHASE 0xA1          // phase-correct PWM both channels
-
 #define VOLTAGE_MON         // Comment out to disable LVP
 
 //#define OFFTIM3             // Use short/med/long off-time presses
