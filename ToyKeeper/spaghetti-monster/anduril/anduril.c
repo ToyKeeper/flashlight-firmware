@@ -45,8 +45,9 @@
 
 // battery readout style (pick one)
 #define BATTCHECK_VpT
-//#define BATTCHECK_8bars  // FIXME: breaks build
-//#define BATTCHECK_4bars  // FIXME: breaks build
+//#define BATTCHECK_8bars
+//#define BATTCHECK_6bars
+//#define BATTCHECK_4bars
 
 // enable/disable various strobe modes
 #define USE_BIKE_FLASHER_MODE
@@ -54,6 +55,12 @@
 #define USE_TACTICAL_STROBE_MODE
 #define USE_LIGHTNING_MODE
 #define USE_CANDLE_MODE
+
+// enable/disable various blinky modes
+#define USE_BATTCHECK
+#define USE_GOODNIGHT
+//setting for TempCheck blinky is included by the USE_THERMAL_REGULATION define
+#define USE_BEACON
 
 //Muggle mode for easy UI
 #define USE_MUGGLE_MODE
@@ -111,9 +118,9 @@
 /********* Configure SpaghettiMonster *********/
 #define USE_DELAY_ZERO
 #define USE_RAMPING
+#define USE_STEPPED_RAMPING
 #define RAMP_LENGTH 150  // default, if not overridden in a driver cfg file
 #define MAX_BIKING_LEVEL 120  // should be 127 or less
-#define USE_BATTCHECK
 #ifdef USE_MUGGLE_MODE
 #define MAX_CLICKS 6
 #define MUGGLE_FLOOR 22
@@ -139,12 +146,16 @@
 // auto-detect how many eeprom bytes
 #define USE_EEPROM
 typedef enum {
+    #ifdef USE_STEPPED_RAMPING
     ramp_style_e,
+    #endif
     ramp_smooth_floor_e,
     ramp_smooth_ceil_e,
+    #ifdef USE_STEPPED_RAMPING
     ramp_discrete_floor_e,
     ramp_discrete_ceil_e,
     ramp_discrete_steps_e,
+    #endif
     #ifdef USE_STROBE_STATE
     strobe_type_e,
     #endif
@@ -205,11 +216,15 @@ uint8_t battcheck_state(EventPtr event, uint16_t arg);
 uint8_t tempcheck_state(EventPtr event, uint16_t arg);
 uint8_t thermal_config_state(EventPtr event, uint16_t arg);
 #endif
+#ifdef USE_GOODNIGHT
 // 1-hour ramp down from low, then automatic off
 uint8_t goodnight_state(EventPtr event, uint16_t arg);
+#endif
+#ifdef USE_BEACON
 // beacon mode and its related config mode
 uint8_t beacon_state(EventPtr event, uint16_t arg);
 uint8_t beacon_config_state(EventPtr event, uint16_t arg);
+#endif
 // soft lockout
 #define MOON_DURING_LOCKOUT_MODE
 uint8_t lockout_state(EventPtr event, uint16_t arg);
@@ -262,13 +277,17 @@ void save_config_wl();
 // brightness control
 uint8_t memorized_level = MAX_1x7135;
 // smooth vs discrete ramping
+#ifdef USE_STEPPED_RAMPING
 volatile uint8_t ramp_style = 0;  // 0 = smooth, 1 = discrete
+#endif
 volatile uint8_t ramp_smooth_floor = RAMP_SMOOTH_FLOOR;
 volatile uint8_t ramp_smooth_ceil = RAMP_SMOOTH_CEIL;
+#ifdef USE_STEPPED_RAMPING
 volatile uint8_t ramp_discrete_floor = RAMP_DISCRETE_FLOOR;
 volatile uint8_t ramp_discrete_ceil = RAMP_DISCRETE_CEIL;
 volatile uint8_t ramp_discrete_steps = RAMP_DISCRETE_STEPS;
 uint8_t ramp_discrete_step_size;  // don't set this
+#endif
 
 #ifdef USE_INDICATOR_LED
 // bits 2-3 control lockout mode
@@ -415,13 +434,19 @@ uint8_t off_state(EventPtr event, uint16_t arg) {
         set_state(steady_state, nearest_level(MAX_LEVEL));
         return MISCHIEF_MANAGED;
     }
-    #ifdef USE_BATTCHECK
     // 3 clicks: battcheck mode / blinky mode group 1
     else if (event == EV_3clicks) {
+        #ifdef USE_BATTCHECK
         set_state(battcheck_state, 0);
+        #elif defined(USE_GOODNIGHT)
+        set_state(goodnight_state, 0);
+        #elif defined(USE_BEACON)
+        set_state(beacon_state, 0);
+        #elif defined(USE_THERMAL_REGULATION)
+        set_state(tempcheck_state, 0);
+        #endif
         return MISCHIEF_MANAGED;
     }
-    #endif
     // click, click, long-click: strobe mode
     #ifdef USE_STROBE_STATE
     else if (event == EV_click3_hold) {
@@ -460,11 +485,13 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
     #ifdef USE_REVERSING
     static int8_t ramp_direction = 1;
     #endif
+    #ifdef USE_STEPPED_RAMPING
     if (ramp_style) {
         mode_min = ramp_discrete_floor;
         mode_max = ramp_discrete_ceil;
         ramp_step_size = ramp_discrete_step_size;
     }
+    #endif
 
     // turn LED on when we first enter the mode
     if ((event == EV_enter_state) || (event == EV_reenter_state)) {
@@ -508,6 +535,7 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     // 3 clicks: toggle smooth vs discrete ramping
+    #ifdef USE_STEPPED_RAMPING
     else if (event == EV_3clicks) {
         ramp_style = !ramp_style;
         memorized_level = nearest_level(memorized_level);
@@ -526,6 +554,7 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
         set_level(memorized_level);
         return MISCHIEF_MANAGED;
     }
+    #endif
     // 4 clicks: configure this ramp mode
     else if (event == EV_4clicks) {
         push_state(ramp_config_state, 0);
@@ -534,9 +563,11 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
     // hold: change brightness (brighter)
     else if (event == EV_click1_hold) {
         // ramp slower in discrete mode
+        #ifdef USE_STEPPED_RAMPING
         if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
             return MISCHIEF_MANAGED;
         }
+        #endif
         #ifdef USE_REVERSING
         // make it ramp down instead, if already at max
         if ((arg <= 1) && (actual_level >= mode_max)) {
@@ -571,7 +602,7 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
             delay_4ms(8/4);
         }
         #endif
-        #if defined(BLINK_AT_STEPS)
+        #if defined(USE_STEPPED_RAMPING) && defined(BLINK_AT_STEPS)
         uint8_t foo = ramp_style;
         ramp_style = 1;
         uint8_t nearest = nearest_level((int16_t)actual_level);
@@ -607,9 +638,11 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
         ramp_direction = 1;
         #endif
         // ramp slower in discrete mode
+        #ifdef USE_STEPPED_RAMPING
         if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
             return MISCHIEF_MANAGED;
         }
+        #endif
         // TODO? make it ramp up instead, if already at min?
         memorized_level = nearest_level((int16_t)actual_level - ramp_step_size);
         #ifdef USE_THERMAL_REGULATION
@@ -633,7 +666,7 @@ uint8_t steady_state(EventPtr event, uint16_t arg) {
             delay_4ms(8/4);
         }
         #endif
-        #if defined(BLINK_AT_STEPS)
+        #if defined(USE_STEPPED_RAMPING) && defined(BLINK_AT_STEPS)
         uint8_t foo = ramp_style;
         ramp_style = 1;
         uint8_t nearest = nearest_level((int16_t)actual_level);
@@ -991,7 +1024,13 @@ uint8_t battcheck_state(EventPtr event, uint16_t arg) {
     }
     // 2 clicks: goodnight mode
     else if (event == EV_2clicks) {
+        #ifdef USE_GOODNIGHT
         set_state(goodnight_state, 0);
+        #elif defined(USE_BEACON)
+        set_state(beacon_state, 0);
+        #elif defined(USE_THERMAL_REGULATION)
+        set_state(tempcheck_state, 0);            
+        #endif
         return MISCHIEF_MANAGED;
     }
     return EVENT_NOT_HANDLED;
@@ -1007,7 +1046,13 @@ uint8_t tempcheck_state(EventPtr event, uint16_t arg) {
     }
     // 2 clicks: battcheck mode
     else if (event == EV_2clicks) {
+        #ifdef USE_BATTCHECK
         set_state(battcheck_state, 0);
+        #elif defined(USE_GOODNIGHT)
+        set_state(goodnight_state, 0);
+        #elif defined(USE_BEACON)
+        set_state(beacon_state, 0);
+        #endif
         return MISCHIEF_MANAGED;
     }
     // 4 clicks: thermal config mode
@@ -1019,7 +1064,7 @@ uint8_t tempcheck_state(EventPtr event, uint16_t arg) {
 }
 #endif
 
-
+#ifdef USE_BEACON
 uint8_t beacon_state(EventPtr event, uint16_t arg) {
     // 1 click: off
     if (event == EV_1click) {
@@ -1030,8 +1075,10 @@ uint8_t beacon_state(EventPtr event, uint16_t arg) {
     else if (event == EV_2clicks) {
         #ifdef USE_THERMAL_REGULATION
         set_state(tempcheck_state, 0);
-        #else
+        #elif defined(USE_BATTCHECK)
         set_state(battcheck_state, 0);
+        #elif defined(USE_GOODNIGHT)
+        set_state(goodnight_state, 0);
         #endif
         return MISCHIEF_MANAGED;
     }
@@ -1042,8 +1089,10 @@ uint8_t beacon_state(EventPtr event, uint16_t arg) {
     }
     return EVENT_NOT_HANDLED;
 }
+#endif
 
 
+#ifdef USE_GOODNIGHT
 #define GOODNIGHT_TICKS_PER_STEPDOWN (GOODNIGHT_TIME*TICKS_PER_SECOND*60L/GOODNIGHT_LEVEL)
 uint8_t goodnight_state(EventPtr event, uint16_t arg) {
     static uint16_t ticks_since_stepdown = 0;
@@ -1061,7 +1110,13 @@ uint8_t goodnight_state(EventPtr event, uint16_t arg) {
     }
     // 2 clicks: beacon mode
     else if (event == EV_2clicks) {
+        #ifdef USE_BEACON
         set_state(beacon_state, 0);
+        #elif defined(USE_THERMAL_REGULATION)
+        set_state(tempcheck_state, 0);
+        #elif defined(USE_BATTCHECK)
+        set_state(battcheck_state, 0);
+        #endif
         return MISCHIEF_MANAGED;
     }
     // tick: step down (maybe) or off (maybe)
@@ -1082,7 +1137,7 @@ uint8_t goodnight_state(EventPtr event, uint16_t arg) {
     }
     return EVENT_NOT_HANDLED;
 }
-
+#endif
 
 uint8_t lockout_state(EventPtr event, uint16_t arg) {
     #ifdef MOON_DURING_LOCKOUT_MODE
@@ -1101,7 +1156,9 @@ uint8_t lockout_state(EventPtr event, uint16_t arg) {
             if (ramp_discrete_floor < lvl) lvl = ramp_discrete_floor;
             #else
             // Use moon from current ramp
+            #ifdef USE_STEPPED_RAMPING
             if (ramp_style) lvl = ramp_discrete_floor;
+            #endif
             #endif
             set_level(lvl);
         }
@@ -1412,6 +1469,7 @@ uint8_t config_state_base(EventPtr event, uint16_t arg,
 void ramp_config_save() {
     // parse values
     uint8_t val;
+    #ifdef USE_STEPPED_RAMPING
     if (ramp_style) {  // discrete / stepped ramp
 
         val = config_state_values[0];
@@ -1423,7 +1481,9 @@ void ramp_config_save() {
         val = config_state_values[2];
         if (val) ramp_discrete_steps = val;
 
-    } else {  // smooth ramp
+    } else 
+    #endif
+    {  // smooth ramp
 
         val = config_state_values[0];
         if (val) { ramp_smooth_floor = val; }
@@ -1436,7 +1496,11 @@ void ramp_config_save() {
 
 uint8_t ramp_config_state(EventPtr event, uint16_t arg) {
     uint8_t num_config_steps;
+    #ifdef USE_STEPPED_RAMPING
     num_config_steps = 2 + ramp_style;
+    #else
+    num_config_steps = 2;
+    #endif
     return config_state_base(event, arg,
                              num_config_steps, ramp_config_save);
 }
@@ -1577,13 +1641,16 @@ uint8_t nearest_level(int16_t target) {
     // by allowing us to correct for numbers < 0 or > 255 in one central place
     uint8_t mode_min = ramp_smooth_floor;
     uint8_t mode_max = ramp_smooth_ceil;
+    #ifdef USE_STEPPED_RAMPING
     if (ramp_style) {
         mode_min = ramp_discrete_floor;
         mode_max = ramp_discrete_ceil;
     }
+    #endif
     if (target < mode_min) return mode_min;
     if (target > mode_max) return mode_max;
     // the rest isn't relevant for smooth ramping
+    #ifdef USE_STEPPED_RAMPING
     if (! ramp_style) return target;
 
     uint8_t ramp_range = ramp_discrete_ceil - ramp_discrete_floor;
@@ -1598,6 +1665,9 @@ uint8_t nearest_level(int16_t target) {
             return this_level;
     }
     return this_level;
+    #else
+    return target; 
+    #endif
 }
 
 
@@ -1635,12 +1705,16 @@ uint8_t triangle_wave(uint8_t phase) {
 
 void load_config() {
     if (load_eeprom()) {
+        #ifdef USE_STEPPED_RAMPING
         ramp_style = eeprom[ramp_style_e];
+        #endif
         ramp_smooth_floor = eeprom[ramp_smooth_floor_e];
         ramp_smooth_ceil = eeprom[ramp_smooth_ceil_e];
+        #ifdef USE_STEPPED_RAMPING
         ramp_discrete_floor = eeprom[ramp_discrete_floor_e];
         ramp_discrete_ceil = eeprom[ramp_discrete_ceil_e];
         ramp_discrete_steps = eeprom[ramp_discrete_steps_e];
+        #endif
         #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
         strobe_type = eeprom[strobe_type_e];  // TODO: move this to eeprom_wl?
         strobe_delays[0] = eeprom[strobe_delays_0_e];
@@ -1669,12 +1743,16 @@ void load_config() {
 }
 
 void save_config() {
+    #ifdef USE_STEPPED_RAMPING
     eeprom[ramp_style_e] = ramp_style;
+    #endif
     eeprom[ramp_smooth_floor_e] = ramp_smooth_floor;
     eeprom[ramp_smooth_ceil_e] = ramp_smooth_ceil;
+    #ifdef USE_STEPPED_RAMPING
     eeprom[ramp_discrete_floor_e] = ramp_discrete_floor;
     eeprom[ramp_discrete_ceil_e] = ramp_discrete_ceil;
     eeprom[ramp_discrete_steps_e] = ramp_discrete_steps;
+    #endif
     #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
     eeprom[strobe_type_e] = strobe_type;  // TODO: move this to eeprom_wl?
     eeprom[strobe_delays_0_e] = strobe_delays[0];
@@ -1806,10 +1884,13 @@ void loop() {
             // TODO: make tac strobe brightness configurable?
             set_level(STROBE_BRIGHTNESS);
             CLKPR = 1<<CLKPCE; CLKPR = 0;  // run at full speed
+            #ifdef USE_PARTY_STROBE_MODE
             if (st == party_strobe_e) {  // party strobe
                 if (del < 42) delay_zero();
                 else nice_delay_ms(1);
-            } else {  //tactical strobe
+            } else 
+            #endif
+            {  //tactical strobe
                 nice_delay_ms(del >> 1);
             }
             set_level(0);
@@ -1901,12 +1982,14 @@ void loop() {
     }
     #endif
 
+    #ifdef USE_BEACON
     else if (state == beacon_state) {
         set_level(memorized_level);
         nice_delay_ms(500);
         set_level(0);
         nice_delay_ms(((beacon_seconds) * 1000) - 500);
     }
+    #endif
 
     #ifdef USE_IDLE_MODE
     else {
