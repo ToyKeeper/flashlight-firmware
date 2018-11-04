@@ -134,8 +134,7 @@ ISR(WDT_vect) {
     static uint8_t adc_trigger = 0;
     adc_trigger ++;
     if (0 == (adc_trigger & 3)) {
-        ADCSRA |= (1 << ADSC) | (1 << ADIE);
-        adcint_enable = 1;
+        ADCSRA |= _BV(ADSC) | _BV(ADIE);
     }
     #endif
 }

@@ -70,8 +70,7 @@ ISR(ADC_vect) {
     // more often than it should be, like it's auto-triggering after each
     // measurement, but I don't know why, or how to turn that off...
     // So, skip every call except when explicitly requested.
-    if (! adcint_enable) return;
-    adcint_enable = 0;
+    ADCSRA &= ~(_BV(ADIE));
 
     static uint8_t adc_step = 0;
 

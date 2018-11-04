@@ -36,6 +36,10 @@ ISR(TIMER1_COMPA_vect) {
 }
 #endif
 
+
+#define PWM_USES(p) ((PWM1_PIN == p) || (PWM2_PIN == p) || (PWM3_PIN == p) || (PWM4_PIN == p))
+
+
 int main() {
     // Don't allow interrupts while booting
     cli();
@@ -46,28 +50,41 @@ int main() {
     CLKPR = 1;
     #endif
 
-    // configure PWM channels
-    #if PWM_CHANNELS >= 1
-    DDRB |= (1 << PWM1_PIN);
+
+
+    // configure timers for PWM
+    // Timer 0
+    #if PWM_USES(PB0) || PWM_USES(PB1)
     TCCR0B = 0x01; // pre-scaler for timer (1 => 1, 2 => 8, 3 => 64...)
     TCCR0A = PHASE;
     #endif
+
+    // Timer 1
+    #if PWM_USES(PB4)
+    TCCR1 = _BV (CS11);
+    GTCCR = _BV (COM1B1) | _BV (PWM1B);
+    OCR1C = 255;   // Set ceiling value to maximum
+    // set up interrupt for minimum-duty-cycle patch
+    #endif
+    // configure PWM channels
+    #if PWM_CHANNELS >= 1
+    DDRB |= (1 << PWM1_PIN);
+    #endif
+
     #if PWM_CHANNELS >= 2
     DDRB |= (1 << PWM2_PIN);
     #endif
+
     #if PWM_CHANNELS >= 3
     // Second PWM counter is ... weird
     DDRB |= (1 << PWM3_PIN);
-    TCCR1 = _BV (CS10);
-    GTCCR = _BV (COM1B1) | _BV (PWM1B);
-    OCR1C = 255;  // Set ceiling value to maximum
     #endif
+
     #if PWM_CHANNELS >= 4
     // 4th PWM channel is ... not actually supported in hardware  :(
     DDRB |= (1 << PWM4_PIN);
     //OCR1C = 255;  // Set ceiling value to maximum
-    TCCR1 = 1<<CTC1 | 1<<PWM1A | 3<<COM1A0 | 2<<CS10;
-    GTCCR = (2<<COM1B0) | (1<<PWM1B);
+    TCCR1 |= 1<<CTC1 | 1<<PWM1A | 3<<COM1A0;
     // set up an interrupt to control PWM4 pin
     TIMSK |= (1<<OCIE1A) | (1<<TOIE1);
     #endif
