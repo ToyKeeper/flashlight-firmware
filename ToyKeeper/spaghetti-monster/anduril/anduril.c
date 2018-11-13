@@ -69,6 +69,15 @@
 //Muggle mode for easy UI
 #define USE_MUGGLE_MODE
 
+//Handling of on/off transitions
+#define IMMEDIATE_ON // Anduril default
+#define DELAYED_OFF // Anduril default (setting this currently changes no behavior, "enable" it by not setting IMMEDIATE_OFF)
+//#define DELAYED_ON // NarsilM default (setting this currently changes no behavior, "enable" it by not setting IMMEDIATE_ON)
+//#define IMMEDIATE_OFF // NarsilM default
+
+//Allow 2x clicks from off to go to full turbo
+#define FULL_TURBO_FROM_OFF
+
 #define GOODNIGHT_TIME  60  // minutes (approximately)
 #define GOODNIGHT_LEVEL 24  // ~11 lm
 
@@ -209,6 +218,13 @@ typedef enum {
 #endif
 
 // auto-configure other stuff...
+#if defined(IMMEDIATE_ON) && defined(DELAYED_ON)
+#error Cannot use IMMEDIATE_ON and DELAYED_ON at the same time, pick one
+#endif
+#if defined(IMMEDIATE_OFF) && defined(DELAYED_OFF)
+#error Cannot use IMMEDIATE_OFF and DELAYED_OFF at the same time, pick one
+#endif
+
 #if defined(USE_LIGHTNING_MODE) || defined(USE_CANDLE_MODE)
 #define USE_PSEUDO_RAND
 #endif
@@ -408,13 +424,16 @@ uint8_t off_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     #endif
+    #ifdef IMMEDIATE_ON
     // hold (initially): go to lowest level (floor), but allow abort for regular click
     else if (event == EV_click1_press) {
         set_level(nearest_level(1));
         return MISCHIEF_MANAGED;
     }
+    #endif
     // hold: go to lowest level
     else if (event == EV_click1_hold) {
+        #ifdef IMMEDIATE_ON
         #ifdef MOON_TIMING_HINT
         if (arg == 0) {
             // let the user know they can let go now to stay at moon
@@ -427,9 +446,21 @@ uint8_t off_state(Event event, uint16_t arg) {
         // don't start ramping immediately;
         // give the user time to release at moon level
         //if (arg >= HOLD_TIMEOUT) {  // smaller
+		#ifdef USE_STEPPED_RAMPING
         if (arg >= (!ramp_style) * HOLD_TIMEOUT) {  // more consistent
             set_state(steady_state, 1);
         }
+		#else
+		if (arg >= HOLD_TIMEOUT) {  // smaller
+            set_state(steady_state, 1);
+        }
+		#endif
+    #else
+        if (arg >= HOLD_TIMEOUT) {  // smaller
+          memorized_level = 0;
+          set_state(steady_state, 1);
+        }
+    #endif
         return MISCHIEF_MANAGED;
     }
     // hold, release quickly: go to lowest level (floor)
@@ -447,11 +478,6 @@ uint8_t off_state(Event event, uint16_t arg) {
         set_state(steady_state, memorized_level);
         return MISCHIEF_MANAGED;
     }
-    // 2 clicks (initial press): off, to prep for later events
-    else if (event == EV_click2_press) {
-        set_level(0);
-        return MISCHIEF_MANAGED;
-    }
     // click, hold: go to highest level (ceiling) (for ramping down)
     else if (event == EV_click2_hold) {
         set_state(steady_state, MAX_LEVEL);
@@ -460,6 +486,11 @@ uint8_t off_state(Event event, uint16_t arg) {
     // 2 clicks: highest mode (ceiling)
     else if (event == EV_2clicks) {
         set_state(steady_state, MAX_LEVEL);
+        return MISCHIEF_MANAGED;
+    }
+    // 3 clicks (initial press): off, to prep for later events
+    else if (event == EV_click3_press) {
+        set_level(0);
         return MISCHIEF_MANAGED;
     }
     #ifdef USE_BATTCHECK
@@ -541,7 +572,14 @@ uint8_t steady_state(Event event, uint16_t arg) {
         if ((arg > mode_min) && (arg < mode_max))
             memorized_level = arg;
         // use the requested level even if not memorized
-        arg = nearest_level(arg);
+        #ifdef FULL_TURBO_FROM_OFF
+          if (arg != MAX_LEVEL)
+          {
+            arg = nearest_level(arg);
+          }
+        #else
+          arg = nearest_level(arg);
+        #endif
         #ifdef USE_THERMAL_REGULATION
         target_level = arg;
         #endif
@@ -551,6 +589,14 @@ uint8_t steady_state(Event event, uint16_t arg) {
         #endif
         return MISCHIEF_MANAGED;
     }
+    #ifdef IMMEDIATE_OFF
+    // hold (initially): instantly shut off the emitters so we emulate NarsilM behavior
+    else if (event == EV_click1_press) {
+        memorized_level = actual_level;
+        set_level(0);
+        return MISCHIEF_MANAGED;
+    }
+    #endif
     // 1 click: off
     else if (event == EV_1click) {
         set_state(off_state, 0);
@@ -599,6 +645,10 @@ uint8_t steady_state(Event event, uint16_t arg) {
     }
     // hold: change brightness (brighter)
     else if (event == EV_click1_hold) {
+        #ifdef IMMEDIATE_OFF
+		// In IM-Off mode, go back to the previously memorized mode as the emitters were switched off instantly on button-down
+        set_level(memorized_level);
+        #endif
         // ramp slower in discrete mode
         if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
             return MISCHIEF_MANAGED;
