@@ -33,6 +33,41 @@ inline void set_level_gradually(uint8_t lvl);
 void gradual_tick();
 #endif
 
+#ifdef PWM1_COMPRESS
+  #define PWM1_LVL_GET(x) ramp_compression(pwm1_levels, PWM1_COMPRESS, x)
+#else
+  #define PWM1_LVL_GET(x) pgm_read_byte(pwm1_levels + x)
+#endif
+
+#ifdef PWM2_COMPRESS
+  #define PWM2_LVL_GET(x) ramp_compression(pwm2_levels, PWM2_COMPRESS, x)
+#else
+  #define PWM2_LVL_GET(x) pgm_read_byte(pwm2_levels + x)
+#endif
+
+#ifdef PWM3_COMPRESS
+  #define PWM3_LVL_GET(x) ramp_compression(pwm3_levels, PWM3_COMPRESS, x)
+#else
+  #define PWM3_LVL_GET(x) pgm_read_byte(pwm3_levels + x)
+#endif
+
+#ifdef PWM4_COMPRESS
+  #define PWM4_LVL_GET(x) ramp_compression(pwm4_levels, PWM4_COMPRESS, x)
+#else
+  #define PWM4_LVL_GET(x) pgm_read_byte(pwm4_levels + x)
+#endif
+
+#if defined(PWM1_COMPRESS) | defined(PWM2_COMPRESS) | defined(PWM3_COMPRESS) | defined(PWM4_COMPRESS)
+#define USE_RAMP_COMPRESSION
+#endif
+
+#ifdef USE_RAMP_COMPRESSION
+  uint8_t ramp_compression(const uint8_t * table_ptr, uint8_t from, uint8_t to, uint8_t replace, uint8_t lvl);
+#else
+  #warning ramp table compression not enabled, you are wasting program space
+#endif
+
+
 // use UI-defined ramp tables if they exist
 #ifdef PWM1_LEVELS
 PROGMEM const uint8_t pwm1_levels[] = { PWM1_LEVELS };
@@ -114,7 +149,7 @@ PROGMEM const uint8_t pwm4_levels[] = { PWM4_LEVELS };
 #endif
 
 // RAMP_SIZE / MAX_LVL
-#define RAMP_SIZE sizeof(pwm1_levels)
+#define RAMP_SIZE RAMP_LENGTH
 #define MAX_LEVEL RAMP_SIZE
 
 void set_level(uint8_t level);

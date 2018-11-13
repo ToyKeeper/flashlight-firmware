@@ -23,6 +23,44 @@
 
 #ifdef USE_RAMPING
 
+#ifdef USE_RAMP_COMPRESSION
+/*
+Example for compression
+
+                     from = 3                to = 9
+                     v                       v
+old tbl: 33  44  55  255 255 255 255 255 255 0
+
+old idx  0   1   2   3   4   5   6   7   8   9 <- this is passed as lvl
+new idx  0   1   2   r   r   r   r   r   r   3
+real     i   i   i   r   r   r   r   r   r   3
+
+compressed table
+         1   2   3                           0
+
+                        F  T  R
+#define PWMx_COMPRESS   3, 9, 255
+#define PWMx_LEVELS     1,2,3,0
+
+*/
+
+uint8_t ramp_compression(const uint8_t * table_ptr, uint8_t from, uint8_t to, uint8_t replace, uint8_t lvl)
+{
+  if (lvl < from)
+  {
+    return pgm_read_byte(table_ptr + lvl);
+  }
+  else if(lvl >= from && lvl < to)
+  {
+    return replace;
+  }
+  else
+  {
+    return pgm_read_byte(table_ptr + lvl - (to - from));
+  }
+}
+#endif
+
 void set_level(uint8_t level) {
     actual_level = level;
     #ifdef USE_SET_LEVEL_GRADUALLY
@@ -57,16 +95,16 @@ void set_level(uint8_t level) {
     } else {
         level --;
         #if PWM_CHANNELS >= 1
-        PWM1_LVL = pgm_read_byte(pwm1_levels + level);
+        PWM1_LVL = PWM1_LVL_GET(level);
         #endif
         #if PWM_CHANNELS >= 2
-        PWM2_LVL = pgm_read_byte(pwm2_levels + level);
+        PWM2_LVL = PWM2_LVL_GET(level);
         #endif
         #if PWM_CHANNELS >= 3
-        PWM3_LVL = pgm_read_byte(pwm3_levels + level);
+        PWM3_LVL = PWM3_LVL_GET(level);
         #endif
         #if PWM_CHANNELS >= 4
-        PWM4_LVL = pgm_read_byte(pwm4_levels + level);
+        PWM4_LVL = PWM4_LVL_GET(level);
         #endif
     }
     #ifdef USE_DYNAMIC_UNDERCLOCKING
@@ -91,7 +129,7 @@ void gradual_tick() {
     uint8_t target;
 
     #if PWM_CHANNELS >= 1
-    target = pgm_read_byte(pwm1_levels + gt);
+    target = PWM1_LVL_GET(gt);
     if ((gt < actual_level)     // special case for FET-only turbo
             && (PWM1_LVL == 0)  // (bypass adjustment period for first step)
             && (target == 255)) PWM1_LVL = 255;
@@ -99,32 +137,32 @@ void gradual_tick() {
     else if (PWM1_LVL > target) PWM1_LVL --;
     #endif
     #if PWM_CHANNELS >= 2
-    target = pgm_read_byte(pwm2_levels + gt);
+    target = PWM2_LVL_GET(gt);
     if (PWM2_LVL < target) PWM2_LVL ++;
     else if (PWM2_LVL > target) PWM2_LVL --;
     #endif
     #if PWM_CHANNELS >= 3
-    target = pgm_read_byte(pwm3_levels + gt);
+    target = PWM3_LVL_GET(gt);
     if (PWM3_LVL < target) PWM3_LVL ++;
     else if (PWM3_LVL > target) PWM3_LVL --;
     #endif
     #if PWM_CHANNELS >= 4
-    target = pgm_read_byte(pwm4_levels + gt);
+    target = PWM4_LVL_GET(gt);
     if (PWM4_LVL < target) PWM4_LVL ++;
     else if (PWM4_LVL > target) PWM4_LVL --;
     #endif
 
     // did we go far enough to hit the next defined ramp level?
     // if so, update the main ramp level tracking var
-    if ((PWM1_LVL == pgm_read_byte(pwm1_levels + gt))
+    if ((PWM1_LVL == PWM1_LVL_GET(gt))
         #if PWM_CHANNELS >= 2
-            && (PWM2_LVL == pgm_read_byte(pwm2_levels + gt))
+            && (PWM2_LVL == PWM2_LVL_GET(gt))
         #endif
         #if PWM_CHANNELS >= 3
-            && (PWM3_LVL == pgm_read_byte(pwm3_levels + gt))
+            && (PWM3_LVL == PWM3_LVL_GET(gt))
         #endif
         #if PWM_CHANNELS >= 4
-            && (PWM4_LVL == pgm_read_byte(pwm4_levels + gt))
+            && (PWM4_LVL == PWM4_LVL_GET(gt))
         #endif
         )
     {
