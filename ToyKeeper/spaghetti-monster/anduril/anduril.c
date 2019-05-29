@@ -1663,16 +1663,21 @@ uint8_t muggle_state(Event event, uint16_t arg) {
     else if (event == EV_click1_press) {
         if (muggle_off_mode)
             set_level(MUGGLE_FLOOR);
+        return MISCHIEF_MANAGED;
     }
     // initial release: direct to memorized level
     else if (event == EV_click1_release) {
         if (muggle_off_mode)
             set_level(memorized_level);
+        return MISCHIEF_MANAGED;
     }
     // if the user keeps pressing, turn off
     else if (event == EV_click2_press) {
-        muggle_off_mode = 1;
-        set_level(0);
+        //muggle_off_mode = 1;
+        if (muggle_off_mode) {
+            set_level(0);
+        }
+        return MISCHIEF_MANAGED;
     }
     // 1 click: on/off
     else if (event == EV_1click) {
