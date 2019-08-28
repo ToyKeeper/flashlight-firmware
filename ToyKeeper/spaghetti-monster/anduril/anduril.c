@@ -191,6 +191,7 @@ typedef enum {
     #ifdef USE_AUX_RGB_LEDS
     rgb_led_off_mode_e,
     rgb_led_lockout_mode_e,
+    rgb_led_muggle_mode_e,
     #endif
     eeprom_indexes_e_END
 } eeprom_indexes_e;
@@ -293,6 +294,9 @@ uint8_t momentary_active = 0;  // boolean, true if active *right now*
 // muggle mode, super-simple, hard to exit
 uint8_t muggle_state(Event event, uint16_t arg);
 uint8_t muggle_mode_active = 0;
+    #if defined(USE_AUX_RGB_LEDS)
+uint8_t muggle_configurable = 0;
+    #endif
 #endif
 
 // general helper function for config modes
@@ -321,14 +325,17 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
 #define RGB_LED_NUM_COLORS 10
 #define RGB_LED_NUM_PATTERNS 4
 #ifndef RGB_LED_OFF_DEFAULT
-//#define RGB_LED_OFF_DEFAULT 0x18  // low, voltage
-#define RGB_LED_OFF_DEFAULT 0x17  // low, rainbow
+#define RGB_LED_OFF_DEFAULT 0x18  // low, voltage
 #endif
 #ifndef RGB_LED_LOCKOUT_DEFAULT
-#define RGB_LED_LOCKOUT_DEFAULT 0x37  // blinking, rainbow
+#define RGB_LED_LOCKOUT_DEFAULT 0x38  // blinking, voltage
+#endif
+#ifndef RGB_LED_MUGGLE_DEFAULT
+#define RGB_LED_MUGGLE_DEFAULT 0x37  // blinking, rainbow
 #endif
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
+uint8_t rgb_led_muggle_mode = RGB_LED_MUGGLE_DEFAULT;
 #endif
 
 #ifdef USE_FACTORY_RESET
@@ -627,6 +634,8 @@ uint8_t off_state(Event event, uint16_t arg) {
     // 6 clicks: muggle mode
     else if (event == EV_6clicks) {
         blink_confirm(1);
+        // this way it can't ever get set within muggle mode itself
+        muggle_configurable = 1;  
         set_state(muggle_state, 0);
         return MISCHIEF_MANAGED;
     }
@@ -1810,6 +1819,10 @@ uint8_t muggle_state(Event event, uint16_t arg) {
     // turn LED off when we first enter the mode
     if (event == EV_enter_state) {
         ramp_direction = 1;
+        
+        #if defined(USE_AUX_RGB_LEDS)
+            rgb_led_update(rgb_led_muggle_mode, 0);
+        #endif
 
         #ifdef START_AT_MEMORIZED_LEVEL
             memorized_level = arg;
@@ -1911,6 +1924,34 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #if defined(USE_AUX_RGB_LEDS)
+    // 3 clicks: change RGB aux LED pattern
+    else if (event == EV_3clicks && muggle_configurable) {
+        uint8_t mode = (rgb_led_muggle_mode >> 4) + 1;
+        mode = mode % RGB_LED_NUM_PATTERNS;
+        rgb_led_muggle_mode = (mode << 4) | (rgb_led_muggle_mode & 0x0f);
+        rgb_led_update(rgb_led_muggle_mode, 0);
+        save_config();
+        blink_confirm(1);
+        return MISCHIEF_MANAGED;
+    }
+    // click, click, hold: change RGB aux LED color
+    else if (event == EV_click3_hold && muggle_configurable) {
+        if (0 == (arg & 0x3f)) {
+            uint8_t mode = (rgb_led_muggle_mode & 0x0f) + 1;
+            mode = mode % RGB_LED_NUM_COLORS;
+            rgb_led_muggle_mode = mode | (rgb_led_muggle_mode & 0xf0);
+            //save_config();
+        }
+        rgb_led_update(rgb_led_muggle_mode, arg);
+        return MISCHIEF_MANAGED;
+    }
+    // click, click, hold, release: save new color
+    else if (event == EV_click3_hold_release && muggle_configurable) {
+        save_config();
+        return MISCHIEF_MANAGED;
+    }
+    #endif
     // tick: housekeeping
     else if (event == EV_tick) {
         // un-reverse after 1 second
@@ -1920,10 +1961,37 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         if (muggle_off_mode) {
             if (arg > TICKS_PER_SECOND*1) {  // sleep after 1 second
                 go_to_standby = 1;  // sleep while light is off
+                #if defined(USE_AUX_RGB_LEDS)
+                if (muggle_off_mode)
+                    rgb_led_update(rgb_led_muggle_mode, arg);
+                #endif
             }
         }
         return MISCHIEF_MANAGED;
     }
+    #if defined(TICK_DURING_STANDBY) && defined(USE_AUX_RGB_LEDS)
+    else if (event == EV_sleep_tick) {
+        #if defined(USE_AUX_RGB_LEDS)
+        // after 10 seconds idle, disable configuration
+        if (muggle_off_mode) {
+            if (muggle_configurable) {
+                if (arg < TICKS_PER_SECOND*10) {
+                    // flicker red
+                    rgb_led_update(rgb_led_muggle_mode, (arg&4)?0x11:0x01);
+                } 
+                else {
+                    muggle_configurable = 0;
+                    // send one red blink
+                    rgb_led_update(rgb_led_muggle_mode, 0x21);
+                }
+            }
+            else
+                rgb_led_update(rgb_led_muggle_mode, arg);
+         }
+        #endif
+        return MISCHIEF_MANAGED;
+    }
+    #endif
     #ifdef USE_THERMAL_REGULATION
     // overheating is handled specially in muggle mode
     else if(event == EV_temperature_high) {
@@ -2412,6 +2480,7 @@ void load_config() {
         #ifdef USE_AUX_RGB_LEDS
         rgb_led_off_mode = eeprom[rgb_led_off_mode_e];
         rgb_led_lockout_mode = eeprom[rgb_led_lockout_mode_e];
+        rgb_led_muggle_mode = eeprom[rgb_led_muggle_mode_e];
         #endif
     }
     #ifdef START_AT_MEMORIZED_LEVEL
@@ -2460,6 +2529,7 @@ void save_config() {
     #ifdef USE_AUX_RGB_LEDS
     eeprom[rgb_led_off_mode_e] = rgb_led_off_mode;
     eeprom[rgb_led_lockout_mode_e] = rgb_led_lockout_mode;
+    eeprom[rgb_led_muggle_mode_e] = rgb_led_muggle_mode;
     #endif
 
     save_eeprom();
