@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Instead of using a Makefile, since most of the firmwares here build in the
 # same exact way, here's a script to do the same thing
@@ -13,9 +13,18 @@ export ATTINY=$1 ; shift
 export PROGRAM=$1 ; shift
 export MCU=attiny$ATTINY
 export CC=avr-gcc
+#export CC="clang90 -target avr -I/usr/local/avr/include/"
 export OBJCOPY=avr-objcopy
-export CFLAGS="-Wall -g -Os -mmcu=$MCU -c -std=gnu99 -DATTINY=$ATTINY -I.. -I../.. -I../../.. -fshort-enums"
-export OFLAGS="-Wall -g -Os -mmcu=$MCU"
+export FLAGS="-g -Os -mmcu=$MCU"
+export FLAGS+=" -Wall"
+#export FLAGS+=" -Winline"
+export FLAGS+=" -flto" # space win
+export FLAGS+=" -mrelax" # space win
+#export FLAGS+=" -mcall-prologues" # space loss
+#export FLAGS+=" -fno-inline"
+#export FLAGS+=" -fgnu89-inline"
+export CFLAGS="$FLAGS -c -std=gnu99 -DATTINY=$ATTINY -I.. -I../.. -I../../.. -fshort-enums"
+export OFLAGS="$FLAGS"
 export LDFLAGS=
 export OBJCOPYFLAGS='--set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0 --no-change-warnings -O ihex'
 export OBJS=$PROGRAM.o
