@@ -2289,8 +2289,9 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
         // show actual voltage while asleep...
         if (go_to_standby) {
             // choose a color based on battery voltage
-            if (volts >= 38) actual_color = colors[4];
-            else if (volts >= 33) actual_color = colors[2];
+            // Green -> Blue -> Red
+            if (volts >= 38) actual_color = colors[2];
+            else if (volts >= 33) actual_color = colors[4];
             else actual_color = colors[0];
         }
         // ... but during preview, cycle colors quickly
