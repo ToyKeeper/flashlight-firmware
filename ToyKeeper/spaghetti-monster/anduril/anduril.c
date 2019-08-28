@@ -1639,7 +1639,7 @@ uint8_t lockout_state(Event event, uint16_t arg) {
         set_level(lvl);
         #elif defined(LOCKOUT_MOON_FANCY)
         uint8_t levels[] = { ramp_smooth_floor, ramp_discrete_floor };
-        if ((event & 0x0f) == 2) {
+        if ((event & B_COUNT) == 2) {
             set_level(levels[ramp_style^1]);
         } else {
             set_level(levels[ramp_style]);
