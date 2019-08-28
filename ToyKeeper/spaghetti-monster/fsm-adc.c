@@ -97,7 +97,7 @@ inline void ADC_off() {
 }
 
 #ifdef USE_VOLTAGE_DIVIDER
-static inline uint8_t calc_voltage_divider(uint16_t value) {
+inline uint8_t calc_voltage_divider(uint16_t value) {
     // use 9.7 fixed-point to get sufficient precision
     uint16_t adc_per_volt = ((ADC_44<<7) - (ADC_22<<7)) / (44-22);
     // incoming value is 8.2 fixed-point, so shift it 2 bits less

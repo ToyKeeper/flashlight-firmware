@@ -14,4 +14,9 @@
 // use it like this:
 //#include incfile(CONFIGFILE)
 
+// Compensate for a change in how the inline keyword is processed by
+// different gcc versions.  We only generate one object file, so by
+// definition all functions are static.
+#define inline static inline
+
 #endif
