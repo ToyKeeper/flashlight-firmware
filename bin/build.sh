@@ -22,7 +22,7 @@ export FLAGS+=" -flto" # space win
 export FLAGS+=" -mrelax" # space win
 #export FLAGS+=" -mcall-prologues" # space loss
 #export FLAGS+=" -fno-inline"
-#export FLAGS+=" -fgnu89-inline"
+export FLAGS+=" -fgnu89-inline"
 export CFLAGS="$FLAGS -c -std=gnu99 -DATTINY=$ATTINY -I.. -I../.. -I../../.. -fshort-enums"
 export OFLAGS="$FLAGS"
 export LDFLAGS=
