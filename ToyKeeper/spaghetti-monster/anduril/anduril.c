@@ -648,7 +648,9 @@ uint8_t off_state(Event event, uint16_t arg) {
     else if (event == EV_6clicks) {
         blink_confirm(1);
         // this way it can't ever get set within muggle mode itself
-        muggle_configurable = 1;  
+        #if defined(USE_AUX_RGB_LEDS)
+            muggle_configurable = 1;  
+        #endif
         set_state(muggle_state, 0);
         return MISCHIEF_MANAGED;
     }
@@ -1674,6 +1676,9 @@ uint8_t lockout_state(Event event, uint16_t arg) {
     // button was released
     else if ((event & (B_CLICK | B_PRESS)) == (B_CLICK)) {
         set_level(0);
+        #if defined(USE_AUX_RGB_LEDS)
+            rgb_led_update(rgb_led_lockout_mode, 0);
+        #endif
     }
     #endif
 
@@ -1870,12 +1875,18 @@ uint8_t muggle_state(Event event, uint16_t arg) {
     else if (event == EV_click2_press) {
         muggle_off_mode = 1;
         set_level(0);
+        #if defined(USE_AUX_RGB_LEDS)
+            rgb_led_update(rgb_led_muggle_mode, arg);
+        #endif
     }
     // 1 click: on/off
     else if (event == EV_1click) {
         muggle_off_mode ^= 1;
         if (muggle_off_mode) {
             set_level(0);
+            #if defined(USE_AUX_RGB_LEDS)
+                rgb_led_update(rgb_led_muggle_mode, arg);
+            #endif
         }
         /*
         else {
@@ -1985,17 +1996,16 @@ uint8_t muggle_state(Event event, uint16_t arg) {
     #if defined(TICK_DURING_STANDBY) && defined(USE_AUX_RGB_LEDS)
     else if (event == EV_sleep_tick) {
         #if defined(USE_AUX_RGB_LEDS)
-        // after 10 seconds idle, disable configuration
+        // after 10 seconds idle (1 regular + 9 sleep), disable configuration
         if (muggle_off_mode) {
             if (muggle_configurable) {
-                if (arg < TICKS_PER_SECOND*10) {
-                    // flicker red
-                    rgb_led_update(rgb_led_muggle_mode, (arg&4)?0x11:0x01);
+                if (arg < (9000/MS_PER_STANDBY_TICK)) {
+                    rgb_led_update(rgb_led_muggle_mode, arg);
                 } 
                 else {
                     muggle_configurable = 0;
                     // send one red blink
-                    rgb_led_update(rgb_led_muggle_mode, 0x21);
+                    rgb_led_update(RGB_HIGH|RGB_RED, 0);
                 }
             }
             else

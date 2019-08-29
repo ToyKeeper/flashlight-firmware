@@ -45,6 +45,7 @@ volatile uint8_t go_to_standby = 0;
  *  how it is)
  */
 #endif
+#define MS_PER_STANDBY_TICK (16<<((STANDBY_TICK_SPEED<8)?(STANDBY_TICK_SPEED):(STANDBY_TICK_SPEED-24)))
 #endif
 
 #define standby_mode sleep_until_eswitch_pressed
