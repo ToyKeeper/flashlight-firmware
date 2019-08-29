@@ -2443,9 +2443,9 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
                                       1, 0, 0, 0,  0, 0, 0, 0,  0, 1};
         frame = (frame + 1) % sizeof(animation);
         if (pattern == 3)
-            pattern = animation[frame];
-        else
             pattern = animation[frame] >> 1;
+        else
+            pattern = animation[frame];
     }
     switch (pattern) {
         case 0:  // off
