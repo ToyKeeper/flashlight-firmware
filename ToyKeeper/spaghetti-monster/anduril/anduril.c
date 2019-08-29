@@ -345,13 +345,13 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
 #define RGB_BLINKLOW (3<<4)
 #define RGB_BLINKHIGH (4<<4)
 #ifndef RGB_LED_OFF_DEFAULT
-#define RGB_LED_OFF_DEFAULT (RGB_LOW|RGB_VOLTAGE)
+#define RGB_LED_OFF_DEFAULT (RGB_LOW | RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_LOCKOUT_DEFAULT
-#define RGB_LED_LOCKOUT_DEFAULT (RGB_BLINKLOW|RGB_VOLTAGE)
+#define RGB_LED_LOCKOUT_DEFAULT (RGB_BLINKLOW | RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_MUGGLE_DEFAULT
-#define RGB_LED_MUGGLE_DEFAULT (RGB_BLINKHIGH|RGB_RAINBOW)
+#define RGB_LED_MUGGLE_DEFAULT (RGB_BLINKHIGH | RGB_RAINBOW)
 #endif
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
@@ -2028,7 +2028,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
                     muggle_configurable = 0;
                     #if defined(USE_AUX_RGB_LEDS)
                     // send one red blink
-                    rgb_led_update(RGB_HIGH|RGB_RED, 0);
+                    rgb_led_update(RGB_HIGH | RGB_RED, 0);
                     #endif
                 }
             }
