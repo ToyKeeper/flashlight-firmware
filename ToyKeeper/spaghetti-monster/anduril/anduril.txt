@@ -145,14 +145,14 @@ Indicator LED / aux LED support:
   If front-facing aux LEDs are present, they stay off while the main 
   light is on.  They only turn on when the main emitters are off.
 
-  The indicator LED can stay on when the light is in the "off" state or 
-  "lockout" state.  These modes can have different settings, to make it 
+  The indicator LED can stay on when the light is in the "off", "lockout",
+  or "muggle" states.  These modes can have different settings, to make it
   easier to see which one the light is in.  To configure it:
 
-    1. Go to the standby mode you want to configure.  This is either 
-       "off" or "lockout".
+    1. Go to the standby mode you want to configure.  This is
+       "off", "lockout", or "muggle".
     2. In "off" mode, click 7 times to switch to the next aux LED mode.
-       Or in "lockout" mode, click 3 times.
+       Or in "lockout"/"muggle" modes, click 3 times.
     3. Repeat step 2 until the desired mode is reached.
 
   The available aux LED / indicator LED modes vary depending on the type 
@@ -161,7 +161,8 @@ Indicator LED / aux LED support:
     - Off
     - Low
     - High
-    - Blinking
+    - Blinking Low
+    - Blinking High
 
   If the aux LEDs can change color, the user can configure the color 
   using exactly the same method...  except hold the last click until the 
