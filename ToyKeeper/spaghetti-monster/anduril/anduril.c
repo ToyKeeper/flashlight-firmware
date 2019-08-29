@@ -158,6 +158,10 @@ typedef enum {
     ramp_discrete_floor_e,
     ramp_discrete_ceil_e,
     ramp_discrete_steps_e,
+    #ifdef USE_MUGGLE_MODE
+    ramp_muggle_floor_e,
+    ramp_muggle_ceil_e,
+    #endif
     #endif
     #ifdef USE_MANUAL_MEMORY
     manual_memory_e,
@@ -191,7 +195,9 @@ typedef enum {
     #ifdef USE_AUX_RGB_LEDS
     rgb_led_off_mode_e,
     rgb_led_lockout_mode_e,
+    #ifdef USE_MUGGLE_MODE
     rgb_led_muggle_mode_e,
+    #endif
     #endif
     eeprom_indexes_e_END
 } eeprom_indexes_e;
@@ -294,7 +300,7 @@ uint8_t momentary_active = 0;  // boolean, true if active *right now*
 // muggle mode, super-simple, hard to exit
 uint8_t muggle_state(Event event, uint16_t arg);
 uint8_t muggle_mode_active = 0;
-    #if defined(USE_AUX_RGB_LEDS)
+    #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
 uint8_t muggle_configurable = 0;
     #endif
 #endif
@@ -419,6 +425,10 @@ volatile uint8_t ramp_discrete_floor = RAMP_DISCRETE_FLOOR;
 volatile uint8_t ramp_discrete_ceil = RAMP_DISCRETE_CEIL;
 volatile uint8_t ramp_discrete_steps = RAMP_DISCRETE_STEPS;
 uint8_t ramp_discrete_step_size;  // don't set this
+#ifdef USE_MUGGLE_MODE
+volatile uint8_t ramp_muggle_floor = MUGGLE_FLOOR;
+volatile uint8_t ramp_muggle_ceil = MUGGLE_CEILING;
+#endif
 
 #ifdef USE_INDICATOR_LED
     // bits 2-3 control lockout mode
@@ -1833,6 +1843,8 @@ uint8_t momentary_state(Event event, uint16_t arg) {
 uint8_t muggle_state(Event event, uint16_t arg) {
     static int8_t ramp_direction;
     static int8_t muggle_off_mode;
+    uint8_t mode_min = ramp_muggle_floor;
+    uint8_t mode_max = ramp_muggle_ceil;
 
     // turn LED off when we first enter the mode
     if (event == EV_enter_state) {
@@ -1857,14 +1869,14 @@ uint8_t muggle_state(Event event, uint16_t arg) {
 
             muggle_off_mode = 1;
             //memorized_level = MAX_1x7135;
-            memorized_level = (MUGGLE_FLOOR + MUGGLE_CEILING) / 2;
+            memorized_level = (mode_min + mode_max) / 2;
         #endif
         return MISCHIEF_MANAGED;
     }
     // initial press: moon hint
     else if (event == EV_click1_press) {
         if (muggle_off_mode)
-            set_level(MUGGLE_FLOOR);
+            set_level(mode_min);
     }
     // initial release: direct to memorized level
     else if (event == EV_click1_release) {
@@ -1904,19 +1916,19 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         if (muggle_off_mode) {
             muggle_off_mode = 0;
             ramp_direction = 1;
-            set_level(MUGGLE_FLOOR);
+            set_level(mode_min);
         }
         else {
             uint8_t m;
             m = actual_level;
             // ramp down if already at ceiling
-            if ((arg <= 1) && (m >= MUGGLE_CEILING)) ramp_direction = -1;
+            if ((arg <= 1) && (m >= mode_max)) ramp_direction = -1;
             // ramp
             m += ramp_direction;
-            if (m < MUGGLE_FLOOR)
-                m = MUGGLE_FLOOR;
-            if (m > MUGGLE_CEILING)
-                m = MUGGLE_CEILING;
+            if (m < mode_min)
+                m = mode_min;
+            if (m > mode_max)
+                m = mode_max;
             memorized_level = m;
             set_level(m);
         }
@@ -1948,6 +1960,13 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #ifdef USE_RAMP_CONFIG
+    // 4 clicks: configure this ramp mode
+    else if (event == EV_4clicks && muggle_configurable) {
+        push_state(ramp_config_state, 0);
+        return MISCHIEF_MANAGED;
+    }
+    #endif
     #if defined(USE_AUX_RGB_LEDS)
     // 3 clicks: change RGB aux LED pattern
     else if (event == EV_3clicks && muggle_configurable) {
@@ -2025,7 +2044,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         if (! muggle_off_mode) {
             // step down proportional to the amount of overheating
             int16_t new = actual_level - arg;
-            if (new < MUGGLE_FLOOR) { new = MUGGLE_FLOOR; }
+            if (new < mode_min) { new = mode_min; }
             set_level(new);
         }
         return MISCHIEF_MANAGED;
@@ -2034,7 +2053,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
     // low voltage is handled specially in muggle mode
     else if(event == EV_voltage_low) {
         uint8_t lvl = (actual_level >> 1) + (actual_level >> 2);
-        if (lvl >= MUGGLE_FLOOR) {
+        if (lvl >= mode_min) {
             set_level(lvl);
         } else {
             muggle_off_mode = 1;
@@ -2086,7 +2105,19 @@ uint8_t config_state_base(Event event, uint16_t arg,
 void ramp_config_save() {
     // parse values
     uint8_t val;
-    if (ramp_style) {  // discrete / stepped ramp
+    if (0) {}  // placeholder
+#ifdef USE_MUGGLE_MODE
+    else if (muggle_mode_active) {
+
+        val = config_state_values[0];
+        if (val) { ramp_muggle_floor = val; }
+
+        val = config_state_values[1];
+        if (val) { ramp_muggle_ceil = MAX_LEVEL + 1 - val; }
+    
+    } 
+#endif
+    else if (ramp_style) {  // discrete / stepped ramp
 
         val = config_state_values[0];
         if (val) { ramp_discrete_floor = val; }
@@ -2110,7 +2141,12 @@ void ramp_config_save() {
 
 uint8_t ramp_config_state(Event event, uint16_t arg) {
     uint8_t num_config_steps;
-    num_config_steps = 2 + ramp_style;
+#ifdef USE_MUGGLE_MODE
+    if (muggle_mode_active)
+        num_config_steps = 2;
+    else
+#endif
+        num_config_steps = 2 + ramp_style;
     return config_state_base(event, arg,
                              num_config_steps, ramp_config_save);
 }
@@ -2472,6 +2508,10 @@ void load_config() {
         ramp_discrete_floor = eeprom[ramp_discrete_floor_e];
         ramp_discrete_ceil = eeprom[ramp_discrete_ceil_e];
         ramp_discrete_steps = eeprom[ramp_discrete_steps_e];
+        #ifdef USE_MUGGLE_MODE
+        ramp_muggle_floor = eeprom[ramp_muggle_floor_e];
+        ramp_muggle_ceil = eeprom[ramp_muggle_ceil_e];
+        #endif
         #endif
         #ifdef USE_MANUAL_MEMORY
         manual_memory = eeprom[manual_memory_e];
@@ -2503,7 +2543,9 @@ void load_config() {
         #ifdef USE_AUX_RGB_LEDS
         rgb_led_off_mode = eeprom[rgb_led_off_mode_e];
         rgb_led_lockout_mode = eeprom[rgb_led_lockout_mode_e];
+        #ifdef USE_MUGGLE_MODE
         rgb_led_muggle_mode = eeprom[rgb_led_muggle_mode_e];
+        #endif
         #endif
     }
     #ifdef START_AT_MEMORIZED_LEVEL
@@ -2521,6 +2563,10 @@ void save_config() {
     eeprom[ramp_discrete_floor_e] = ramp_discrete_floor;
     eeprom[ramp_discrete_ceil_e] = ramp_discrete_ceil;
     eeprom[ramp_discrete_steps_e] = ramp_discrete_steps;
+    #ifdef USE_MUGGLE_MODE
+    eeprom[ramp_muggle_floor_e] = ramp_muggle_floor;
+    eeprom[ramp_muggle_ceil_e] = ramp_muggle_ceil;
+    #endif
     #endif
     #ifdef USE_MANUAL_MEMORY
     eeprom[manual_memory_e] = manual_memory;
@@ -2552,7 +2598,9 @@ void save_config() {
     #ifdef USE_AUX_RGB_LEDS
     eeprom[rgb_led_off_mode_e] = rgb_led_off_mode;
     eeprom[rgb_led_lockout_mode_e] = rgb_led_lockout_mode;
+    #ifdef USE_MUGGLE_MODE
     eeprom[rgb_led_muggle_mode_e] = rgb_led_muggle_mode;
+    #endif
     #endif
 
     save_eeprom();
