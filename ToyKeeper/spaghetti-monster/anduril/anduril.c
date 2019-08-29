@@ -2424,9 +2424,9 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
         if (go_to_standby) {
             // choose a color based on battery voltage
             // Green -> Blue -> Red
-            if (volts >= 38) actual_color = colors[2];
-            else if (volts >= 33) actual_color = colors[4];
-            else actual_color = colors[0];
+            if (volts >= 38) actual_color = colors[RGB_GREEN];
+            else if (volts >= 33) actual_color = colors[RGB_BLUE];
+            else actual_color = colors[RGB_RED];
         }
         // ... but during preview, cycle colors quickly
         else {
