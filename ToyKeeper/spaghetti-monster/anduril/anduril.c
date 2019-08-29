@@ -324,14 +324,27 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
  */
 #define RGB_LED_NUM_COLORS 9
 #define RGB_LED_NUM_PATTERNS 4
+#define RGB_RED 0
+#define RGB_YELLOW 1
+#define RGB_GREEN 2
+#define RGB_CYAN 3
+#define RGB_BLUE 4
+#define RGB_PURPLE 5
+#define RGB_WHITE 6
+#define RGB_RAINBOW 7
+#define RGB_VOLTAGE 8
+#define RGB_OFF (0<<4)
+#define RGB_LOW (1<<4)
+#define RGB_HIGH (2<<4)
+#define RGB_BLINK (3<<4)
 #ifndef RGB_LED_OFF_DEFAULT
-#define RGB_LED_OFF_DEFAULT 0x18  // low, voltage
+#define RGB_LED_OFF_DEFAULT (RGB_LOW|RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_LOCKOUT_DEFAULT
-#define RGB_LED_LOCKOUT_DEFAULT 0x38  // blinking, voltage
+#define RGB_LED_LOCKOUT_DEFAULT (RGB_BLINK|RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_MUGGLE_DEFAULT
-#define RGB_LED_MUGGLE_DEFAULT 0x37  // blinking, rainbow
+#define RGB_LED_MUGGLE_DEFAULT (RGB_HIGH|RGB_RAINBOW)
 #endif
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
