@@ -322,7 +322,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
  * 7: rainbow
  * 8: voltage
  */
-#define RGB_LED_NUM_COLORS 10
+#define RGB_LED_NUM_COLORS 9
 #define RGB_LED_NUM_PATTERNS 4
 #ifndef RGB_LED_OFF_DEFAULT
 #define RGB_LED_OFF_DEFAULT 0x18  // low, voltage
