@@ -657,8 +657,8 @@ uint8_t off_state(Event event, uint16_t arg) {
     // 6 clicks: muggle mode
     else if (event == EV_6clicks) {
         blink_confirm(1);
-        // this way it can't ever get set within muggle mode itself
         #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
+            // this way it can't ever get set within muggle mode itself
             muggle_configurable = 1;  
         #endif
         set_state(muggle_state, 0);
