@@ -973,7 +973,7 @@ uint8_t steady_state(Event event, uint16_t arg) {
         // [int(62*4 / (x**0.9)) for x in (1,2,4,8,16,32,64,128)]
         //uint8_t intervals[] = {248, 132, 71, 38, 20, 10, 5, 3};
         // [int(62*4 / (x**0.95)) for x in (1,2,4,8,16,32,64,128)]
-        uint8_t intervals[] = {248, 128, 66, 34, 17, 9, 4, 2};
+        static uint8_t intervals[] = {248, 128, 66, 34, 17, 9, 4, 2};
         uint8_t diff;
         static uint8_t ticks_since_adjust = 0;
         if (gradual_target > actual_level) {
@@ -2364,8 +2364,8 @@ void indicator_blink(uint8_t arg) {
     #ifdef USE_FANCIER_BLINKING_INDICATOR
 
     // fancy blink, set off/low/high levels here:
-    uint8_t seq[] = {0, 1, 2, 1,  0, 0, 0, 0,
-                     0, 0, 1, 0,  0, 0, 0, 0};
+    static uint8_t seq[] = {0, 1, 2, 1,  0, 0, 0, 0,
+                            0, 0, 1, 0,  0, 0, 0, 0};
     indicator_led(seq[arg & 15]);
 
     #else  // basic blink, 1/8th duty cycle
@@ -2401,7 +2401,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     if ((! go_to_standby) && (pattern > 2)) { pattern = 2; }
 
 
-    uint8_t colors[] = {
+    static uint8_t colors[] = {
         0b00000001,  // 0: red
         0b00000101,  // 1: yellow
         0b00000100,  // 2: green
@@ -2439,8 +2439,8 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     if (pattern == 3 || pattern == 4) {
     
         // uses an odd length to avoid lining up with rainbow loop
-        uint8_t animation[] = {2, 1, 0, 0,  0, 0, 0, 0,  0,
-                               1, 0, 0, 0,  0, 0, 0, 0,  0, 1};
+        static uint8_t animation[] = {2, 1, 0, 0,  0, 0, 0, 0,  0,
+                                      1, 0, 0, 0,  0, 0, 0, 0,  0, 1};
         frame = (frame + 1) % sizeof(animation);
         if (pattern == 3)
             pattern = animation[frame];
