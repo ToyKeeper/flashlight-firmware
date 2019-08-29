@@ -658,7 +658,7 @@ uint8_t off_state(Event event, uint16_t arg) {
     else if (event == EV_6clicks) {
         blink_confirm(1);
         // this way it can't ever get set within muggle mode itself
-        #if defined(USE_AUX_RGB_LEDS)
+        #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
             muggle_configurable = 1;  
         #endif
         set_state(muggle_state, 0);
@@ -2014,21 +2014,28 @@ uint8_t muggle_state(Event event, uint16_t arg) {
     }
     #if defined(TICK_DURING_STANDBY) && defined(USE_AUX_RGB_LEDS)
     else if (event == EV_sleep_tick) {
-        #if defined(USE_AUX_RGB_LEDS)
+        #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
         // after 10 seconds idle (1 regular + 9 sleep), disable configuration
         if (muggle_off_mode) {
             if (muggle_configurable) {
                 if (arg < (9000/MS_PER_STANDBY_TICK)) {
+                    #if defined(USE_AUX_RGB_LEDS)
                     rgb_led_update(rgb_led_muggle_mode, arg);
+                    #endif
                 } 
                 else {
                     muggle_configurable = 0;
+                    #if defined(USE_AUX_RGB_LEDS)
                     // send one red blink
                     rgb_led_update(RGB_HIGH|RGB_RED, 0);
+                    #endif
                 }
             }
-            else
+            else {
+                #if defined(USE_AUX_RGB_LEDS)
                 rgb_led_update(rgb_led_muggle_mode, arg);
+                #endif
+            }
          }
         #endif
         return MISCHIEF_MANAGED;
