@@ -127,6 +127,13 @@ Muggle mode:
   * 1 click: On / off.
   * Hold: Ramp up / down.
   * 6 clicks: Exit muggle mode.
+  * Configuration options available until 10 seconds of idle time:
+    * On hardware with an indicator LED...
+      * 3 clicks: Change aux LED brightness used in lockout mode.
+                  (the modes are usually off/low/high/blinking)
+      * 3 clicks (but hold the last click):
+          Change aux LED color used in lockout mode.
+    * 4 clicks: configure ramp
 
 Indicator LED / aux LED support:
 
