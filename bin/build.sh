@@ -18,6 +18,8 @@ export OBJCOPY=avr-objcopy
 export FLAGS="-g -Os -mmcu=$MCU"
 export FLAGS+=" -Wall"
 #export FLAGS+=" -Winline"
+#export FLAGS+=" -fopt-info"
+export FLAGS+=" -frename-registers" # minor space win
 export FLAGS+=" -flto" # space win
 export FLAGS+=" -mrelax" # space win
 #export FLAGS+=" -mcall-prologues" # space loss
