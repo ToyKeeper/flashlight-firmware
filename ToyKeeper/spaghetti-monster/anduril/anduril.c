@@ -329,7 +329,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
  * 8: voltage
  */
 #define RGB_LED_NUM_COLORS 9
-#define RGB_LED_NUM_PATTERNS 4
+#define RGB_LED_NUM_PATTERNS 5
 #define RGB_RED 0
 #define RGB_YELLOW 1
 #define RGB_GREEN 2
@@ -342,15 +342,16 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
 #define RGB_OFF (0<<4)
 #define RGB_LOW (1<<4)
 #define RGB_HIGH (2<<4)
-#define RGB_BLINK (3<<4)
+#define RGB_BLINKLOW (3<<4)
+#define RGB_BLINKHIGH (4<<4)
 #ifndef RGB_LED_OFF_DEFAULT
 #define RGB_LED_OFF_DEFAULT (RGB_LOW|RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_LOCKOUT_DEFAULT
-#define RGB_LED_LOCKOUT_DEFAULT (RGB_BLINK|RGB_VOLTAGE)
+#define RGB_LED_LOCKOUT_DEFAULT (RGB_BLINKLOW|RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_MUGGLE_DEFAULT
-#define RGB_LED_MUGGLE_DEFAULT (RGB_BLINK|RGB_RAINBOW)
+#define RGB_LED_MUGGLE_DEFAULT (RGB_BLINKHIGH|RGB_RAINBOW)
 #endif
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
@@ -2435,12 +2436,16 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     }
 
     // pick a brightness from the animation sequence
-    if (pattern == 3) {
+    if (pattern == 3 || pattern == 4) {
+    
         // uses an odd length to avoid lining up with rainbow loop
-        uint8_t animation[] = {0, 0, 0, 0,  0, 0, 0, 0,  0,
-                               0, 0, 0, 0,  0, 0, 0, 0,  0, 1};
+        uint8_t animation[] = {2, 1, 0, 0,  0, 0, 0, 0,  0,
+                               1, 0, 0, 0,  0, 0, 0, 0,  0, 1};
         frame = (frame + 1) % sizeof(animation);
-        pattern = animation[frame];
+        if (pattern == 3)
+            pattern = animation[frame];
+        else
+            pattern = animation[frame] >> 1;
     }
     switch (pattern) {
         case 0:  // off
