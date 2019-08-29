@@ -350,7 +350,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
 #define RGB_LED_LOCKOUT_DEFAULT (RGB_BLINK|RGB_VOLTAGE)
 #endif
 #ifndef RGB_LED_MUGGLE_DEFAULT
-#define RGB_LED_MUGGLE_DEFAULT (RGB_HIGH|RGB_RAINBOW)
+#define RGB_LED_MUGGLE_DEFAULT (RGB_BLINK|RGB_RAINBOW)
 #endif
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
