@@ -9,7 +9,7 @@ for TARGET in cfg-emisar-d4v2.h ; do
   ATTINY=$(grep 'ATTINY:' $TARGET | awk '{ print $3 }')
   if [ -z "$ATTINY" ]; then ATTINY=85 ; fi
   echo ../../../bin/build.sh $ATTINY "$UI" "-DCONFIGFILE=${TARGET}"
-  ../../../bin/build.sh $ATTINY "$UI" "-DCONFIGFILE=${TARGET}"
+  ../../../bin/build.sh $ATTINY "$UI" "-DCONFIGFILE=${TARGET}" || exit 1
   mv -f "$UI".hex "$UI".$NAME.hex
   mv -f "$UI".elf "$UI".$NAME.elf
 done
