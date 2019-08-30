@@ -150,7 +150,7 @@ void indicator_led_auto() {
 #ifdef USE_AUX_RGB_LEDS
 void rgb_led_set(uint8_t value) {
     // value: 0b00BBGGRR
-    uint8_t pins[] = { AUXLED_R_PIN, AUXLED_G_PIN, AUXLED_B_PIN };
+    static uint8_t pins[] = { AUXLED_R_PIN, AUXLED_G_PIN, AUXLED_B_PIN };
     for (uint8_t i=0; i<3; i++) {
         uint8_t lvl = (value >> (i<<1)) & 0x03;
         uint8_t pin = pins[i];
