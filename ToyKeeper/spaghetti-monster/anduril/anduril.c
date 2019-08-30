@@ -1953,22 +1953,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     */
-    // 6 clicks: exit muggle mode
-    else if (event == EV_6clicks) {
-        blink_confirm(1);
-        muggle_mode_active = 0;
-        save_config();
-        set_state(off_state, 0);
-        return MISCHIEF_MANAGED;
-    }
     #if defined(TICK_DURING_STANDBY)
-        #ifdef USE_RAMP_CONFIG
-    // 4 clicks: configure this ramp mode
-    else if (event == EV_4clicks && muggle_configurable) {
-        push_state(ramp_config_state, 0);
-        return MISCHIEF_MANAGED;
-    }
-        #endif
         #if defined(USE_AUX_RGB_LEDS)
     // 3 clicks: change RGB aux LED pattern
     else if (event == EV_3clicks && muggle_configurable) {
@@ -1997,7 +1982,22 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
         #endif
+        #ifdef USE_RAMP_CONFIG
+    // 4 clicks: configure this ramp mode
+    else if (event == EV_4clicks && muggle_configurable) {
+        push_state(ramp_config_state, 0);
+        return MISCHIEF_MANAGED;
+    }
+        #endif
     #endif
+    // 6 clicks: exit muggle mode
+    else if (event == EV_6clicks) {
+        blink_confirm(1);
+        muggle_mode_active = 0;
+        save_config();
+        set_state(off_state, 0);
+        return MISCHIEF_MANAGED;
+    }
     // tick: housekeeping
     else if (event == EV_tick) {
         // un-reverse after 1 second
