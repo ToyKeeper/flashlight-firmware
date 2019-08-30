@@ -300,7 +300,7 @@ uint8_t momentary_active = 0;  // boolean, true if active *right now*
 // muggle mode, super-simple, hard to exit
 uint8_t muggle_state(Event event, uint16_t arg);
 uint8_t muggle_mode_active = 0;
-    #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
+    #if defined(TICK_DURING_STANDBY) && (defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG))
 uint8_t muggle_configurable = 0;
     #endif
 #endif
@@ -658,7 +658,7 @@ uint8_t off_state(Event event, uint16_t arg) {
     // 6 clicks: muggle mode
     else if (event == EV_6clicks) {
         blink_confirm(1);
-        #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
+        #if defined(TICK_DURING_STANDBY) && (defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG))
             // this way it can't ever get set within muggle mode itself
             muggle_configurable = 1;  
         #endif
@@ -1961,14 +1961,15 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
-    #ifdef USE_RAMP_CONFIG
+    #if defined(TICK_DURING_STANDBY)
+        #ifdef USE_RAMP_CONFIG
     // 4 clicks: configure this ramp mode
     else if (event == EV_4clicks && muggle_configurable) {
         push_state(ramp_config_state, 0);
         return MISCHIEF_MANAGED;
     }
-    #endif
-    #if defined(USE_AUX_RGB_LEDS)
+        #endif
+        #if defined(USE_AUX_RGB_LEDS)
     // 3 clicks: change RGB aux LED pattern
     else if (event == EV_3clicks && muggle_configurable) {
         uint8_t mode = (rgb_led_muggle_mode >> 4) + 1;
@@ -1995,6 +1996,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         save_config();
         return MISCHIEF_MANAGED;
     }
+        #endif
     #endif
     // tick: housekeeping
     else if (event == EV_tick) {
@@ -2013,7 +2015,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         }
         return MISCHIEF_MANAGED;
     }
-    #if defined(TICK_DURING_STANDBY) && defined(USE_AUX_RGB_LEDS)
+    #if defined(TICK_DURING_STANDBY) && (defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG))
     else if (event == EV_sleep_tick) {
         #if defined(USE_AUX_RGB_LEDS) || defined(USE_RAMP_CONFIG)
         // after 10 seconds idle (1 regular + 9 sleep), disable configuration
