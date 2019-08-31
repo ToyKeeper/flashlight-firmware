@@ -2410,7 +2410,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     if (rgb_led_preview_active && (pattern > 2)) { pattern = 2; }
 
 
-    static uint8_t colors[] = {
+    static const uint8_t colors[] = {
         0b00000001,  // 0: red
         0b00000101,  // 1: yellow
         0b00000100,  // 2: green
@@ -2430,17 +2430,19 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
         actual_color = colors[rainbow];
     }
     else {  // voltage
+        static const uint8_t voltagecolors[] = { 
+            colors[RGB_GREEN], colors[RGB_BLUE], colors[RGB_RED] 
+        };
         // show actual voltage while asleep...
         if (!rgb_led_preview_active) {
             // choose a color based on battery voltage
-            // Green -> Blue -> Red
-            if (volts >= 38) actual_color = colors[RGB_GREEN];
-            else if (volts >= 33) actual_color = colors[RGB_BLUE];
-            else actual_color = colors[RGB_RED];
+            if (volts >= 38) actual_color = voltagecolors[0];
+            else if (volts >= 33) actual_color = voltagecolors[1];
+            else actual_color = voltagecolors[2];
         }
-        // ... but during preview, cycle colors quickly
+        // ... but during preview, flicker and cycle voltage colors 
         else {
-            actual_color = colors[((arg>>1) % 3) << 1];
+            actual_color = (arg&3) ? 0 : voltagecolors[(arg>>3) % 3];
         }
     }
 
