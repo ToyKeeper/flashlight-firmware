@@ -356,6 +356,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
 uint8_t rgb_led_muggle_mode = RGB_LED_MUGGLE_DEFAULT;
+uint8_t rgb_led_preview_active = 0;  // are we setting a pattern
 #endif
 
 #ifdef USE_FACTORY_RESET
@@ -702,7 +703,9 @@ uint8_t off_state(Event event, uint16_t arg) {
             rgb_led_off_mode = mode | (rgb_led_off_mode & 0xf0);
             //save_config();
         }
+        rgb_led_preview_active = 1;
         rgb_led_update(rgb_led_off_mode, arg);
+        rgb_led_preview_active = 0;
         return MISCHIEF_MANAGED;
     }
     else if (event == EV_click7_hold_release) {
@@ -1769,7 +1772,9 @@ uint8_t lockout_state(Event event, uint16_t arg) {
             rgb_led_lockout_mode = mode | (rgb_led_lockout_mode & 0xf0);
             //save_config();
         }
+        rgb_led_preview_active = 1;
         rgb_led_update(rgb_led_lockout_mode, arg);
+        rgb_led_preview_active = 0;
         return MISCHIEF_MANAGED;
     }
     // click, click, hold, release: save new color
@@ -1973,7 +1978,9 @@ uint8_t muggle_state(Event event, uint16_t arg) {
             rgb_led_muggle_mode = mode | (rgb_led_muggle_mode & 0xf0);
             //save_config();
         }
+        rgb_led_preview_active = 1;
         rgb_led_update(rgb_led_muggle_mode, arg);
+        rgb_led_preview_active = 0;
         return MISCHIEF_MANAGED;
     }
     // click, click, hold, release: save new color
@@ -2400,7 +2407,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     uint8_t color = mode & 0x0f;
 
     // preview in blinking mode is awkward... use high instead
-    if ((! go_to_standby) && (pattern > 2)) { pattern = 2; }
+    if (rgb_led_preview_active && (pattern > 2)) { pattern = 2; }
 
 
     static uint8_t colors[] = {
@@ -2424,7 +2431,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     }
     else {  // voltage
         // show actual voltage while asleep...
-        if (go_to_standby) {
+        if (!rgb_led_preview_active) {
             // choose a color based on battery voltage
             // Green -> Blue -> Red
             if (volts >= 38) actual_color = colors[RGB_GREEN];
