@@ -2690,9 +2690,15 @@ void setup() {
     #else  // if not START_AT_MEMORIZED_LEVEL
 
     // blink at power-on to let user know power is connected
+    #if defined(USE_AUX_RGB_LEDS)
+    rgb_led_update(RGB_HIGH|RGB_GREEN, 0);
+    delay_4ms(3);
+    rgb_led_update(0, 0);
+    #else
     set_level(RAMP_SIZE/8);
     delay_4ms(3);
     set_level(0);
+    #endif
 
     #ifdef USE_FACTORY_RESET
     if (button_is_pressed())
