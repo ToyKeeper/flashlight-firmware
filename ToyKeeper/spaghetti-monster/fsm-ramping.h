@@ -38,22 +38,41 @@ inline void set_level_gradually(uint8_t lvl);
 void gradual_tick();
 #endif
 
-// use UI-defined ramp tables if they exist
+uint8_t lookup_pwm(const uint8_t * PROGMEM array, uint8_t level);
+
+// use UI-defined ramp tables if they exist.  If PWM1_C_LEVELS is defined,
+// then all other tables must also be compressed.
 #ifdef PWM1_LEVELS
+  #ifdef PWM1_C_LEVELS
+PROGMEM const uint8_t pwm1_levels[] = { PWM1_C_LEVELS };
+  #else
 PROGMEM const uint8_t pwm1_levels[] = { PWM1_LEVELS };
+  #endif
 #endif
 #ifdef PWM2_LEVELS
+  #ifdef PWM1_C_LEVELS
+PROGMEM const uint8_t pwm2_levels[] = { PWM2_C_LEVELS };
+  #else
 PROGMEM const uint8_t pwm2_levels[] = { PWM2_LEVELS };
+  #endif
 #endif
 #ifdef PWM3_LEVELS
+  #ifdef PWM1_C_LEVELS
+PROGMEM const uint8_t pwm3_levels[] = { PWM3_C_LEVELS };
+  #else
 PROGMEM const uint8_t pwm3_levels[] = { PWM3_LEVELS };
+  #endif
 #endif
 #ifdef PWM4_LEVELS
+  #ifdef PWM1_C_LEVELS
+PROGMEM const uint8_t pwm4_levels[] = { PWM4_C_LEVELS };
+  #else
 PROGMEM const uint8_t pwm4_levels[] = { PWM4_LEVELS };
+  #endif
 #endif
 
 // default / example ramps
-#ifndef PWM1_LEVELS
+#if !defined(PWM1_LEVELS) && !defined(PWM1_C_LEVELS)
 #if PWM_CHANNELS == 1
   #if RAMP_LENGTH == 50
     // ../../bin/level_calc.py 1 50 7135 3 0.25 980
@@ -119,7 +138,7 @@ PROGMEM const uint8_t pwm4_levels[] = { PWM4_LEVELS };
 #endif
 
 // RAMP_SIZE / MAX_LVL
-#define RAMP_SIZE sizeof(pwm1_levels)
+#define RAMP_SIZE RAMP_LENGTH // (sizeof(pwm1_levels))
 #define MAX_LEVEL RAMP_SIZE
 
 void set_level(uint8_t level);
