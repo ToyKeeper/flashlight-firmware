@@ -19,7 +19,9 @@ export FLAGS="-g -Os -mmcu=$MCU"
 export FLAGS+=" -Wall"
 #export FLAGS+=" -Winline"
 #export FLAGS+=" -fopt-info"
+export FLAGS+=" -mstrict-X" # minor space win
 export FLAGS+=" -frename-registers" # minor space win
+#export FLAGS+=" -fwhole-program" # space win, if you can't use lto
 export FLAGS+=" -flto" # space win
 export FLAGS+=" -mrelax" # space win
 #export FLAGS+=" -mcall-prologues" # space loss
