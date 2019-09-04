@@ -816,7 +816,8 @@ uint8_t steady_state(Event event, uint16_t arg) {
     }
     #endif
     // hold: change brightness (brighter)
-    else if (event == EV_click1_hold) {
+    // click, hold: change brightness (dimmer)
+    else if (event == EV_click1_hold || event == EV_click2_hold) {
         // ramp slower in discrete mode
         if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
             return MISCHIEF_MANAGED;
@@ -824,26 +825,41 @@ uint8_t steady_state(Event event, uint16_t arg) {
         #ifdef USE_REVERSING
         // fix ramp direction on first frame if necessary
         if (!arg) {
-            // make it ramp down instead, if already at max
-            if (actual_level >= mode_max) { ramp_direction = -1; }
-            // make it ramp up if already at min
-            // (off->hold->stepped_min->release causes this state)
-            else if (actual_level <= mode_min) { ramp_direction = 1; }
+            if (event == EV_click1_hold) {
+                // make it ramp down instead, if already at max
+                if (actual_level >= mode_max) { ramp_direction = -1; }
+                // make it ramp up if already at min
+                // (off->hold->stepped_min->release causes this state)
+                else if (actual_level <= mode_min) { ramp_direction = 1; }
+            } else 
+                ramp_direction = -1;
         }
         memorized_level = nearest_level((int16_t)actual_level \
                           + (ramp_step_size * ramp_direction));
         #else
-        memorized_level = nearest_level((int16_t)actual_level + ramp_step_size);
+        if (event == EV_click1_hold)
+            memorized_level = nearest_level((int16_t)actual_level + ramp_step_size);
+        else
+            // TODO? make it ramp up instead, if already at min?
+            memorized_level = nearest_level((int16_t)actual_level - ramp_step_size);
         #endif
         #if defined(BLINK_AT_RAMP_CEILING) || defined(BLINK_AT_RAMP_MIDDLE)
         // only blink once for each threshold
+        // blink if we would cross the threshold (going up)
+        // blink if we just crossed the threshold (going down)
         if ((memorized_level != actual_level) && (
                 0  // for easier syntax below
                 #ifdef BLINK_AT_RAMP_MIDDLE_1
-                || (memorized_level == BLINK_AT_RAMP_MIDDLE_1)
+                || (actual_level < BLINK_AT_RAMP_MIDDLE_1 &&
+                    memorized_level >= BLINK_AT_RAMP_MIDDLE_1)
+                || (memorized_level <= BLINK_AT_RAMP_MIDDLE_1 &&
+                    actual_level > BLINK_AT_RAMP_MIDDLE_1)
                 #endif
                 #ifdef BLINK_AT_RAMP_MIDDLE_2
-                || (memorized_level == BLINK_AT_RAMP_MIDDLE_2)
+                || (actual_level < BLINK_AT_RAMP_MIDDLE_2 &&
+                    memorized_level >= BLINK_AT_RAMP_MIDDLE_2)
+                || (memorized_level <= BLINK_AT_RAMP_MIDDLE_2 &&
+                    actual_level > BLINK_AT_RAMP_MIDDLE_2)
                 #endif
                 #ifdef BLINK_AT_RAMP_CEILING
                 || (memorized_level == mode_max)
@@ -884,51 +900,6 @@ uint8_t steady_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     #endif
-    // click, hold: change brightness (dimmer)
-    else if (event == EV_click2_hold) {
-        #ifdef USE_REVERSING
-        ramp_direction = 1;
-        #endif
-        // ramp slower in discrete mode
-        if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
-            return MISCHIEF_MANAGED;
-        }
-        // TODO? make it ramp up instead, if already at min?
-        memorized_level = nearest_level((int16_t)actual_level - ramp_step_size);
-        #if defined(BLINK_AT_RAMP_FLOOR) || defined(BLINK_AT_RAMP_MIDDLE)
-        // only blink once for each threshold
-        if ((memorized_level != actual_level) && (
-                0  // for easier syntax below
-                #ifdef BLINK_AT_RAMP_MIDDLE_1
-                || (memorized_level == BLINK_AT_RAMP_MIDDLE_1)
-                #endif
-                #ifdef BLINK_AT_RAMP_MIDDLE_2
-                || (memorized_level == BLINK_AT_RAMP_MIDDLE_2)
-                #endif
-                #ifdef BLINK_AT_RAMP_FLOOR
-                || (memorized_level == mode_min)
-                #endif
-                )) {
-            blip();
-        }
-        #endif
-        #if defined(BLINK_AT_STEPS)
-        uint8_t foo = ramp_style;
-        ramp_style = 1;
-        uint8_t nearest = nearest_level((int16_t)actual_level);
-        ramp_style = foo;
-        // only blink once for each threshold
-        if ((memorized_level != actual_level) &&
-                    (ramp_style == 0) &&
-                    (memorized_level == nearest)
-                    )
-        {
-            blip();
-        }
-        #endif
-        set_level_and_therm_target(memorized_level);
-        return MISCHIEF_MANAGED;
-    }
     #ifdef START_AT_MEMORIZED_LEVEL
     // click, release, hold, release: save new ramp level (if necessary)
     else if (event == EV_click2_hold_release) {
