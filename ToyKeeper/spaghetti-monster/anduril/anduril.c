@@ -845,21 +845,20 @@ uint8_t steady_state(Event event, uint16_t arg) {
         #endif
         #if defined(BLINK_AT_RAMP_CEILING) || defined(BLINK_AT_RAMP_MIDDLE)
         // only blink once for each threshold
-        // blink if we would cross the threshold (going up)
-        // blink if we just crossed the threshold (going down)
+        // threshold is between the BLINK_AT value and BLINK_AT+1
         if ((memorized_level != actual_level) && (
                 0  // for easier syntax below
                 #ifdef BLINK_AT_RAMP_MIDDLE_1
-                || (actual_level < BLINK_AT_RAMP_MIDDLE_1 &&
-                    memorized_level >= BLINK_AT_RAMP_MIDDLE_1)
-                || (memorized_level <= BLINK_AT_RAMP_MIDDLE_1 &&
-                    actual_level > BLINK_AT_RAMP_MIDDLE_1)
+                || (actual_level <= BLINK_AT_RAMP_MIDDLE_1 &&
+                    memorized_level > BLINK_AT_RAMP_MIDDLE_1)
+                || (actual_level > BLINK_AT_RAMP_MIDDLE_1 &&
+                    memorized_level <= BLINK_AT_RAMP_MIDDLE_1)
                 #endif
                 #ifdef BLINK_AT_RAMP_MIDDLE_2
-                || (actual_level < BLINK_AT_RAMP_MIDDLE_2 &&
-                    memorized_level >= BLINK_AT_RAMP_MIDDLE_2)
-                || (memorized_level <= BLINK_AT_RAMP_MIDDLE_2 &&
-                    actual_level > BLINK_AT_RAMP_MIDDLE_2)
+                || (actual_level <= BLINK_AT_RAMP_MIDDLE_2 &&
+                    memorized_level > BLINK_AT_RAMP_MIDDLE_2)
+                || (actual_level > BLINK_AT_RAMP_MIDDLE_2 &&
+                    memorized_level <= BLINK_AT_RAMP_MIDDLE_2)
                 #endif
                 #ifdef BLINK_AT_RAMP_CEILING
                 || (memorized_level == mode_max)
