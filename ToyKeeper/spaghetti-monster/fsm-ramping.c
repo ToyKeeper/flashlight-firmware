@@ -39,6 +39,7 @@
 
    compresses to:
 
+   min, min_count, nonrepeat_len, max, turbo, nonrepeating block
    0, 4, 3, 255, 0, 32, 64, 192
 
 */
