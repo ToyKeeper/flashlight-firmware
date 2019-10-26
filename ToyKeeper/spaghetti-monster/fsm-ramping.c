@@ -160,6 +160,15 @@ void set_level(uint8_t level) {
         #else
 
         #if PWM_CHANNELS >= 1
+            #if defined(PWM1_TOP)
+        // If we have a 16-bit PWM, we can extend our cycle length past 255
+        // to get extremely dim at the cost of some flicker.  For the lowest
+        // brightness level, make our cycle length 4 times longer.
+        if (level == 0)
+            PWM1_TOP = 0xFF * 4;
+        else
+            PWM1_TOP = 0xFF;
+            #endif
         PWM1_LVL = lookup_pwm(pwm1_levels, level);
         #endif
         #if PWM_CHANNELS >= 2
