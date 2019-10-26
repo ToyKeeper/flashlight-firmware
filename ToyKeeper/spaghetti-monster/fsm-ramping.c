@@ -39,30 +39,44 @@
 
    compresses to:
 
-   min, min_count, nonrepeat_len, max, turbo, nonrepeating block
-   0, 4, 3, 255, 0, 32, 64, 192
+   min, min_count, nonrepeat_len, max, turbo, 
+   nonrepeating block
+   0, 4, 3, 255, 0, 
+   32, 64, 192
 
 */
 
-uint8_t lookup_pwm(const uint8_t * PROGMEM a, uint8_t n)
+struct compressed_ramp
 {
-#define p(a) pgm_read_byte(a)
+    uint8_t min;
+    uint8_t min_count;
+    uint8_t nonrepeat_len;
+    uint8_t max;
+    uint8_t turbo;
+    uint8_t nonrepeat[];
+};
+
+uint8_t lookup_pwm(const uint8_t * PROGMEM array, uint8_t offset)
+{
 #ifdef PWM1_C_LEVELS
-    const uint8_t * PROGMEM levels = a + 5;
     /*
        If n < min_count, return min
        If n < min_count + nonrepeat_len, then lookup the return value and return it
        If n < RAMP_LENGTH-1, return max
        Else, return turbo
     */       
-    return (n < p(a + 1) ? p(a + 0) :
-            n < p(a + 1) + p(a + 2) ? p(levels + n - p(a + 1)) :
-            n < RAMP_LENGTH-1 ? p(a + 3) :
-            p(a + 4));
-#else
-    return p(a + n);
-#endif
+#define p(x) pgm_read_byte(array + offsetof(struct compressed_ramp, x))
+    if (offset < p(min_count)) 
+        return p(min);
+    if (offset < p(min_count) + p(nonrepeat_len))
+        return p(nonrepeat[offset - p(min_count)]);
+    if (offset < RAMP_LENGTH - 1) 
+        return p(max);
+    return p(turbo);
 #undef p
+#else
+    return pgm_read_byte(array + offset);
+#endif
 }
 
 void set_level(uint8_t level) {
