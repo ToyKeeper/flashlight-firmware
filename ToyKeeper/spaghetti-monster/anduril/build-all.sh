@@ -2,6 +2,8 @@
 
 UI=anduril
 
+date '+#define VERSION_NUMBER "%Y%m%d"' > version.h
+
 #for TARGET in cfg-*.h ; do
 for TARGET in cfg-emisar-d4v2.h ; do
   NAME=$(echo "$TARGET" | perl -ne '/cfg-(.*).h/ && print "$1\n";')
