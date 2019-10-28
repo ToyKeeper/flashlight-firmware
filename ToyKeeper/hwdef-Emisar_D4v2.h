@@ -90,6 +90,8 @@ inline void hwdef_setup() {
           | (1<<WGM13)  | (0<<WGM12)  // phase-correct PWM (DS table 12-5)
           ;
 
+  ICR1 = 0xFF; // default to 8-bit cycle
+
   // set up e-switch
   //PORTA = (1 << SWITCH_PIN);  // TODO: configure PORTA / PORTB / PORTC?
   PUEA = (1 << SWITCH_PIN);  // pull-up for e-switch
