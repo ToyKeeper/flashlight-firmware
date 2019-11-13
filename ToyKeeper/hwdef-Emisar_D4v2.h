@@ -95,6 +95,62 @@ inline void hwdef_setup() {
   SWITCH_PCMSK = (1 << SWITCH_PCINT);  // enable pin change interrupt
 }
 
+#if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+void exit_pwm_strobe() {
+  // copied from hwdef_setup
+  TCCR1A  = (0<<WGM11)  | (1<<WGM10)   // 8-bit (TOP=0xFF) (DS table 12-5)
+          | (1<<COM1A1) | (0<<COM1A0)  // PWM 1A in normal direction (DS table 12-4)
+          | (1<<COM1B1) | (0<<COM1B0)  // PWM 1B in normal direction (DS table 12-4)
+          ;
+  TCCR1B  = (0<<CS12)   | (0<<CS11) | (1<<CS10)  // clk/1 (no prescaling) (DS table 12-6)
+          | (0<<WGM13)  | (0<<WGM12)  // phase-correct PWM (DS table 12-5)
+          ;
+  PWM1_LVL = 0;
+  PWM2_LVL = 0;
+}
+
+void init_pwm_strobe(uint32_t delay32, uint8_t tactical) {
+    uint16_t delay16;
+    uint8_t cs;
+    if (delay32 <= 0xffff) {
+        delay16 = (uint16_t)delay32;
+        cs = (1<<CS10); // clk/1
+    } else if ((delay32 >> 3) <= 0xffff) {
+        delay16 = (uint16_t)(delay32 >> 3);
+        cs = (1<<CS11); // clk/8
+    } else if ((delay32 >> 6) <= 0xffff) {
+        delay16 = (uint16_t)(delay32 >> 6);
+        cs = (1<<CS11) | (1<<CS10); // clk/64
+    } else {
+        delay16 = (uint16_t)(delay32 >> 10);
+        cs = (1<<CS12) | (1<<CS10); // clk/1024
+    }
+
+    TCCR1A  = (1<<WGM11)  | (0<<WGM10)
+        | (1<<COM1A1) | (0<<COM1A0)  // PWM 1A in normal direction (DS table 12-4)
+        | (1<<COM1B1) | (0<<COM1B0)  // PWM 1B in normal direction (DS table 12-4)
+        ;
+    TCCR1B  = (0<<CS12)   | (0<<CS11) | (0<<CS10)  // clock turned off
+        | (1<<WGM13)  | (1<<WGM12)  // WGM=1110 (fast PWM, TOP=ICR1) (DS table 12-5)
+        ;
+
+    if (tactical) {
+        PWM1_LVL = delay16 >> 8;
+        PWM2_LVL = delay16 >> 8;
+    } else {
+        PWM1_LVL = delay16 >> 2;
+        PWM2_LVL = delay16 >> 2;
+    }
+    ICR1 = delay16;
+    if (TCNT1 >= delay16)
+        TCNT1 = delay16 - 1;
+
+    TCCR1B  = cs
+        | (1<<WGM13)  | (1<<WGM12)  // WGM=1110 (fast PWM, TOP=ICR1) (DS table 12-5)
+        ;
+}
+#endif
+
 #define LAYOUT_DEFINED
 
 #endif

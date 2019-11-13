@@ -66,6 +66,9 @@
 #define USE_BIKE_FLASHER_MODE
 #define USE_PARTY_STROBE_MODE
 #define USE_TACTICAL_STROBE_MODE
+// PWM strobe modes require 16-bit timer, and only attiny1634 has that.
+//#define USE_PWM_PARTY_STROBE_MODE
+//#define USE_PWM_TACTICAL_STROBE_MODE
 #define USE_LIGHTNING_MODE
 #define USE_CANDLE_MODE
 
@@ -140,7 +143,7 @@
 #endif
 #endif
 
-#if defined(USE_CANDLE_MODE) || defined(USE_BIKE_FLASHER_MODE) || defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE) || defined(USE_LIGHTNING_MODE)
+#if defined(USE_CANDLE_MODE) || defined(USE_BIKE_FLASHER_MODE) || defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE) || defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE) || defined(USE_LIGHTNING_MODE)
 #define USE_STROBE_STATE
 #endif
 
@@ -171,6 +174,11 @@ typedef enum {
     #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
     strobe_delays_0_e,
     strobe_delays_1_e,
+    #endif
+    #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+    strobe_delays_l_e,
+    strobe_delays_m_e,
+    strobe_delays_h_e,
     #endif
     #ifdef USE_BIKE_FLASHER_MODE
     bike_flasher_brightness_e,
@@ -438,6 +446,12 @@ typedef enum {
     #ifdef USE_TACTICAL_STROBE_MODE
     tactical_strobe_e,
     #endif
+    #ifdef USE_PWM_PARTY_STROBE_MODE
+    pwm_party_strobe_e,
+    #endif
+    #ifdef USE_PWM_TACTICAL_STROBE_MODE
+    pwm_tactical_strobe_e,
+    #endif
     #ifdef USE_LIGHTNING_MODE
     lightning_storm_e,
     #endif
@@ -463,6 +477,15 @@ volatile strobe_mode_te strobe_type = 0;
 #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
 // party / tactical strobe timing
 volatile uint8_t strobe_delays[] = { 40, 67 };  // party strobe, tactical strobe
+#endif
+
+#if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+// party / tactical strobe timing, using 16-bit pwm
+// Note: if pwm_strobe_delay_max is more than 24 bits, then load_config and
+// save_config will need to be modified (they only save the lower 24 bits).
+static const uint32_t pwm_strobe_delay_max = F_CPU; // min freq 1Hz
+static const uint32_t pwm_strobe_delay_min = F_CPU / 500; // max freq 500Hz
+volatile uint32_t pwm_strobe_delay = F_CPU / 10; // default freq 10Hz
 #endif
 
 // bike mode config options
@@ -1093,6 +1116,53 @@ uint8_t tint_ramping_state(Event event, uint16_t arg) {
 
 
 #ifdef USE_STROBE_STATE
+
+#if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+// Factoring out this common code saves 72 bytes.  Returning uint16_t instead of
+// uint32_t saves another 48 bytes, but that optimization is only valid if
+// pwm_strobe_delay_max >> 7 is a 16-bit value.  That's true (just barely) with
+// an 8MHz clock and 1Hz min blink rate, but the optimization probably isn't
+// worth the risk in case these numbers change.
+uint32_t pwm_strobe_step_size(uint16_t ticks) {
+    if (ticks >= TICKS_PER_SECOND*2) {
+        return pwm_strobe_delay >> 7;
+    } else if (ticks >= TICKS_PER_SECOND) {
+        return pwm_strobe_delay >> 8;
+    } else {
+        return pwm_strobe_delay >> 9;
+    }
+}
+
+void pwm_strobe_rate_faster(uint16_t ticks) {
+    pwm_strobe_delay -= pwm_strobe_step_size(ticks);
+    if (pwm_strobe_delay < pwm_strobe_delay_min)
+        pwm_strobe_delay = pwm_strobe_delay_min;
+}
+
+void pwm_strobe_rate_slower(uint16_t ticks) {
+    pwm_strobe_delay += pwm_strobe_step_size(ticks);
+    if (pwm_strobe_delay > pwm_strobe_delay_max)
+        pwm_strobe_delay = pwm_strobe_delay_max;
+}
+
+uint8_t is_pwm_strobe_mode(strobe_mode_te st) {
+    #ifdef USE_PWM_TACTICAL_STROBE_MODE
+    if (st == pwm_tactical_strobe_e) return 1;
+    #endif
+    #ifdef USE_PWM_PARTY_STROBE_MODE
+    if (st == pwm_party_strobe_e) return 1;
+    #endif
+    return 0;
+}
+
+uint8_t is_pwm_tactical_strobe_mode(strobe_mode_te st) {
+    #ifdef USE_PWM_TACTICAL_STROBE_MODE
+    if (st == pwm_tactical_strobe_e) return 1;
+    #endif
+    return 0;
+}
+#endif
+
 uint8_t strobe_state(Event event, uint16_t arg) {
     static int8_t ramp_direction = 1;
 
@@ -1114,17 +1184,43 @@ uint8_t strobe_state(Event event, uint16_t arg) {
     // init anything which needs to be initialized
     else if (event == EV_enter_state) {
         ramp_direction = 1;
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        if (is_pwm_strobe_mode(st)) {
+            #ifdef USE_DYNAMIC_UNDERCLOCKING
+            clock_prescale_set(clock_div_1);
+            #endif  // ifdef USE_DYNAMIC_UNDERCLOCKING
+            init_pwm_strobe(pwm_strobe_delay, is_pwm_tactical_strobe_mode(st));
+        }
+        #endif
         return MISCHIEF_MANAGED;
     }
     // 1 click: off
     else if (event == EV_1click) {
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        if (is_pwm_strobe_mode(st)) {
+            exit_pwm_strobe();
+        }
+        #endif
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
     // 2 clicks: rotate through strobe/flasher modes
     else if (event == EV_2clicks) {
-        strobe_type = (st + 1) % NUM_STROBES;
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        if (is_pwm_strobe_mode(st)) {
+            exit_pwm_strobe();
+        }
+        #endif
+        strobe_type = st = (st + 1) % NUM_STROBES;
         save_config();
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        if (is_pwm_strobe_mode(st)) {
+            #ifdef USE_DYNAMIC_UNDERCLOCKING
+            clock_prescale_set(clock_div_1);
+            #endif  // ifdef USE_DYNAMIC_UNDERCLOCKING
+            init_pwm_strobe(pwm_strobe_delay, is_pwm_tactical_strobe_mode(st));
+        }
+        #endif
         return MISCHIEF_MANAGED;
     }
     // hold: change speed (go faster)
@@ -1146,6 +1242,17 @@ uint8_t strobe_state(Event event, uint16_t arg) {
                 else if (d > 254) d = 254;
                 strobe_delays[st] = d;
             }
+        }
+        #endif
+
+        // party / tactical strobe faster/slower
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        else if (is_pwm_strobe_mode(st)) {
+            if (ramp_direction > 0)
+                pwm_strobe_rate_faster(arg);
+            else
+                pwm_strobe_rate_slower(arg);
+            init_pwm_strobe(pwm_strobe_delay, is_pwm_tactical_strobe_mode(st));
         }
         #endif
 
@@ -1188,6 +1295,14 @@ uint8_t strobe_state(Event event, uint16_t arg) {
             if ((arg & 1) == 0) {
                 if (strobe_delays[st] < 255) strobe_delays[st] ++;
             }
+        }
+        #endif
+
+        // party / tactical strobe faster
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        else if (is_pwm_strobe_mode(st)) {
+            pwm_strobe_rate_faster(arg);
+            init_pwm_strobe(pwm_strobe_delay, is_pwm_tactical_strobe_mode(st));
         }
         #endif
 
@@ -2387,10 +2502,18 @@ void load_config() {
         #ifdef USE_TINT_RAMPING
         tint = eeprom[tint_e];
         #endif
-        #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
+        #ifdef USE_STROBE_STATE
         strobe_type = eeprom[strobe_type_e];  // TODO: move this to eeprom_wl?
+        #endif
+        #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
         strobe_delays[0] = eeprom[strobe_delays_0_e];
         strobe_delays[1] = eeprom[strobe_delays_1_e];
+        #endif
+        #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+        pwm_strobe_delay =
+            ((uint32_t)eeprom[strobe_delays_h_e] << 16) |
+            ((uint32_t)eeprom[strobe_delays_m_e] <<  8) |
+            ((uint32_t)eeprom[strobe_delays_l_e]);
         #endif
         #ifdef USE_BIKE_FLASHER_MODE
         bike_flasher_brightness = eeprom[bike_flasher_brightness_e];
@@ -2435,10 +2558,17 @@ void save_config() {
     #ifdef USE_TINT_RAMPING
     eeprom[tint_e] = tint;
     #endif
-    #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
+    #ifdef USE_STROBE_STATE
     eeprom[strobe_type_e] = strobe_type;  // TODO: move this to eeprom_wl?
+    #endif
+    #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
     eeprom[strobe_delays_0_e] = strobe_delays[0];
     eeprom[strobe_delays_1_e] = strobe_delays[1];
+    #endif
+    #if defined(USE_PWM_PARTY_STROBE_MODE) || defined(USE_PWM_TACTICAL_STROBE_MODE)
+    eeprom[strobe_delays_h_e] = (uint8_t)(pwm_strobe_delay >> 16);
+    eeprom[strobe_delays_m_e] = (uint8_t)(pwm_strobe_delay >> 8);
+    eeprom[strobe_delays_l_e] = (uint8_t)(pwm_strobe_delay);
     #endif
     #ifdef USE_BIKE_FLASHER_MODE
     eeprom[bike_flasher_brightness_e] = bike_flasher_brightness;
