@@ -65,10 +65,10 @@
 //#define BATTCHECK_4bars  // FIXME: breaks build
 
 // enable/disable various strobe modes
-#define USE_BIKE_FLASHER_MODE
-#define USE_PARTY_STROBE_MODE
-#define USE_TACTICAL_STROBE_MODE
-#define USE_LIGHTNING_MODE
+//#define USE_BIKE_FLASHER_MODE
+//#define USE_PARTY_STROBE_MODE
+//#define USE_TACTICAL_STROBE_MODE
+//#define USE_LIGHTNING_MODE
 #define USE_CANDLE_MODE
 
 // enable sunset (goodnight) mode
@@ -77,7 +77,7 @@
 #define GOODNIGHT_LEVEL 24  // ~11 lm
 
 // enable beacon mode
-#define USE_BEACON_MODE
+//#define USE_BEACON_MODE
 
 //Muggle mode for easy UI
 #define USE_MUGGLE_MODE
@@ -86,7 +86,7 @@
 #define USE_RAMP_CONFIG
 
 // enable momentary mode
-#define USE_MOMENTARY
+//#define USE_MOMENTARY
 
 // boring strobes nobody really likes, but sometimes flashlight companies want
 // (these replace the fun strobe group,
