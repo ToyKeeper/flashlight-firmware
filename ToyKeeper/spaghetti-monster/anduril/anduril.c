@@ -1667,6 +1667,8 @@ uint8_t lockout_state(Event event, uint16_t arg) {
     // don't turn on during RGB aux LED configuration
     if (event == EV_click3_hold) { set_level(0); } else
     #endif
+    // reset level to the default one
+    memorized_level = DEFAULT_LEVEL;
     if ((event & (B_CLICK | B_PRESS)) == (B_CLICK | B_PRESS)) {
         #ifdef LOCKOUT_MOON_LOWEST
         // Use lowest moon configured
