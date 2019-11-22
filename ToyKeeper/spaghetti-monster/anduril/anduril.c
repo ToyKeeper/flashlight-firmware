@@ -2620,7 +2620,7 @@ void setup() {
         push_state(muggle_state, (MUGGLE_FLOOR+MUGGLE_CEILING)/2);
     else
     #endif
-        push_state(off_state, 1);
+        push_state(lockout_state, 1);
 
     #endif  // ifdef START_AT_MEMORIZED_LEVEL
 }
