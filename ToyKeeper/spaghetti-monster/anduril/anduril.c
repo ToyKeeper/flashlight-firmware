@@ -1688,6 +1688,8 @@ uint8_t goodnight_state(Event event, uint16_t arg) {
 
 
 uint8_t lockout_state(Event event, uint16_t arg) {
+    // reset level to the default one
+    memorized_level = DEFAULT_LEVEL;
     #ifdef MOON_DURING_LOCKOUT_MODE
     // momentary(ish) moon mode during lockout
     // button is being held
@@ -1695,8 +1697,6 @@ uint8_t lockout_state(Event event, uint16_t arg) {
     // don't turn on during RGB aux LED configuration
     if (event == EV_click4_hold) { set_level(0); } else
     #endif
-    // reset level to the default one
-    memorized_level = DEFAULT_LEVEL;
     if ((event & (B_CLICK | B_PRESS)) == (B_CLICK | B_PRESS)) {
         #ifdef LOCKOUT_MOON_LOWEST
         // Use lowest moon configured
