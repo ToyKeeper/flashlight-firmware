@@ -85,6 +85,9 @@
 // make the ramps configurable by the user
 #define USE_RAMP_CONFIG
 
+// enable momentary mode
+#define USE_MOMENTARY
+
 // boring strobes nobody really likes, but sometimes flashlight companies want
 // (these replace the fun strobe group,
 //  so don't enable them at the same time as any of the above strobes)
@@ -293,10 +296,14 @@ uint8_t sos_state(Event event, uint16_t arg);
 // if enabled, 2nd lockout click goes to the other ramp's floor level
 #define LOCKOUT_MOON_FANCY
 uint8_t lockout_state(Event event, uint16_t arg);
+#ifdef USE_MOMENTARY
 // momentary / signalling mode
 uint8_t momentary_state(Event event, uint16_t arg);
-uint8_t momentary_mode = 0;  // 0 = ramping, 1 = strobe
 uint8_t momentary_active = 0;  // boolean, true if active *right now*
+#endif
+#if defined(USE_MOMENTARY) || defined(USE_STROBE_STATE)
+uint8_t momentary_mode = 0;  // 0 = ramping, 1 = strobe
+#endif
 #ifdef USE_MUGGLE_MODE
 // muggle mode, super-simple, hard to exit
 uint8_t muggle_state(Event event, uint16_t arg);
@@ -630,12 +637,14 @@ uint8_t off_state(Event event, uint16_t arg) {
         set_state(lockout_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #ifdef USE_MOMENTARY
     // 5 clicks: momentary mode
     else if (event == EV_5clicks) {
         blink_confirm(1);
         set_state(momentary_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #endif
     #ifdef USE_MUGGLE_MODE
     // 6 clicks: muggle mode
     else if (event == EV_6clicks) {
@@ -733,7 +742,9 @@ uint8_t steady_state(Event event, uint16_t arg) {
 
     // turn LED on when we first enter the mode
     if ((event == EV_enter_state) || (event == EV_reenter_state)) {
+        #if defined(USE_MOMENTARY) || defined(USE_STROBE_STATE)
         momentary_mode = 0;  // 0 = ramping, 1 = strobes
+        #endif
         // if we just got back from config mode, go back to memorized level
         if (event == EV_reenter_state) {
             arg = memorized_level;
@@ -1804,6 +1815,7 @@ uint8_t lockout_state(Event event, uint16_t arg) {
 }
 
 
+#ifdef USE_MOMENTARY
 uint8_t momentary_state(Event event, uint16_t arg) {
     // TODO: momentary strobe here?  (for light painting)
 
@@ -1853,7 +1865,7 @@ uint8_t momentary_state(Event event, uint16_t arg) {
 
     return EVENT_NOT_HANDLED;
 }
-
+#endif
 
 #ifdef USE_MUGGLE_MODE
 uint8_t muggle_state(Event event, uint16_t arg) {
@@ -2636,7 +2648,10 @@ void loop() {
 
     #ifdef USE_STROBE_STATE
     else if ((state == strobe_state)
-         ||  ((state == momentary_state) && (momentary_mode == 1) && (momentary_active)) ) {  // also handle momentary strobes
+        #ifdef USE_MOMENTARY
+         ||  ((state == momentary_state) && (momentary_mode == 1) && (momentary_active)) // also handle momentary strobes
+        #endif
+        ) {  
         uint8_t st = strobe_type;
 
         switch(st) {
