@@ -88,6 +88,9 @@
 // enable momentary mode
 #define USE_MOMENTARY
 
+// Locking the light makes it forget the last level
+//#define USE_DEFAULT_AFTER_LOCKOUT
+
 // boring strobes nobody really likes, but sometimes flashlight companies want
 // (these replace the fun strobe group,
 //  so don't enable them at the same time as any of the above strobes)
@@ -1694,6 +1697,10 @@ uint8_t lockout_state(Event event, uint16_t arg) {
     #ifdef USE_AUX_RGB_LEDS
     // don't turn on during RGB aux LED configuration
     if (event == EV_click3_hold) { set_level(0); } else
+    #endif
+    #ifdef USE_DEFAULT_AFTER_LOCKOUT
+    // reset level to the default one
+    memorized_level = DEFAULT_LEVEL;
     #endif
     if ((event & (B_CLICK | B_PRESS)) == (B_CLICK | B_PRESS)) {
         #ifdef LOCKOUT_MOON_LOWEST
