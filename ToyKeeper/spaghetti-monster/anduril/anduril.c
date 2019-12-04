@@ -1663,13 +1663,11 @@ uint8_t goodnight_state(Event event, uint16_t arg) {
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
-#ifdef USE_BEACON_MODE
     // 2 clicks: beacon mode
     else if (event == EV_2clicks) {
         set_state(beacon_state, 0);
         return MISCHIEF_MANAGED;
     }
-#endif
     // tick: step down (maybe) or off (maybe)
     else if (event == EV_tick) {
         if (++ticks_since_stepdown > GOODNIGHT_TICKS_PER_STEPDOWN) {
