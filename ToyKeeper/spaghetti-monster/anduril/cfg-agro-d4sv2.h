@@ -1,0 +1,16 @@
+
+// Emisar D4S V2 config options for Anduril
+#include "cfg-emisar-d4sv2.h"
+// ATTINY: 1634
+
+#undef DEFAULT_LEVEL
+#define DEFAULT_LEVEL MAX_1x7135
+
+#define USE_DEFAULT_AFTER_LOCKOUT
+
+#undef USE_MOMENTARY
+#undef USE_BEACON_MODE
+#undef USE_LIGHTNING_MODE
+#undef USE_TACTICAL_STROBE_MODE
+#undef USE_PARTY_STROBE_MODE
+#undef USE_BIKE_FLASHER_MODE
