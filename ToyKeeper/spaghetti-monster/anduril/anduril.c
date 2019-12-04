@@ -554,7 +554,7 @@ uint8_t off_state(Event event, uint16_t arg) {
     }
     #endif  // B_TIMING_ON == B_PRESS_T
     // hold: go to lowest level
-    else if (event == EV_click1_hold) {
+    else if (event == EV_click1_hold || event == EV_click3_hold) {
         #if (B_TIMING_ON == B_PRESS_T)
         #ifdef MOON_TIMING_HINT
         if (arg == 0) {
@@ -574,13 +574,13 @@ uint8_t off_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     // hold, release quickly: go to lowest level (floor)
-    else if (event == EV_click1_hold_release) {
+    else if (event == EV_click1_hold_release || event == EV_click3_hold_release) {
         set_state(steady_state, 1);
         return MISCHIEF_MANAGED;
     }
     #if (B_TIMING_ON != B_TIMEOUT_T)
     // 1 click (before timeout): go to memorized level, but allow abort for double click
-    else if (event == EV_click1_release) {
+    else if (event == EV_click1_release || event == EV_click3_release) {
         #ifdef USE_MANUAL_MEMORY
         if (manual_memory)
             set_level(nearest_level(manual_memory));
@@ -818,7 +818,7 @@ uint8_t steady_state(Event event, uint16_t arg) {
     }
     #endif
     // hold: change brightness (brighter)
-    else if (event == EV_click1_hold) {
+    else if (event == EV_click1_hold || event == EV_click3_hold) {
         // ramp slower in discrete mode
         if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
             return MISCHIEF_MANAGED;
@@ -885,7 +885,7 @@ uint8_t steady_state(Event event, uint16_t arg) {
     }
     #if defined(USE_REVERSING) || defined(START_AT_MEMORIZED_LEVEL)
     // reverse ramp direction on hold release
-    else if (event == EV_click1_hold_release) {
+    else if (event == EV_click1_hold_release || event == EV_click3_hold_release) {
         #ifdef USE_REVERSING
         ramp_direction = -ramp_direction;
         #endif
@@ -1827,10 +1827,58 @@ uint8_t lockout_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     #endif
-    // 3 clicks: exit
+    #if (B_TIMING_ON == B_PRESS_T)
+    // hold (initially): go to lowest level (floor), but allow abort for regular click
+    else if (event == EV_click3_press) {
+        set_level(nearest_level(1));
+        return MISCHIEF_MANAGED;
+    }
+    #endif  // B_TIMING_ON == B_PRESS_T
+    // hold: go to lowest level
+    else if (event == EV_click3_hold) {
+        #if (B_TIMING_ON == B_PRESS_T)
+        #ifdef MOON_TIMING_HINT
+        if (arg == 0) {
+            // let the user know they can let go now to stay at moon
+            blip();
+        } else
+        #endif
+        #else  // B_RELEASE_T or B_TIMEOUT_T
+        set_level(nearest_level(1));
+        #endif
+        // don't start ramping immediately;
+        // give the user time to release at moon level
+        //if (arg >= HOLD_TIMEOUT) {  // smaller
+        if (arg >= (!ramp_style) * HOLD_TIMEOUT) {  // more consistent
+            set_state(steady_state, 1);
+        }
+        return MISCHIEF_MANAGED;
+    }
+    // hold, release quickly: go to lowest level (floor)
+    else if (event == EV_click3_hold_release) {
+        set_state(steady_state, 1);
+        return MISCHIEF_MANAGED;
+    }
+    #if (B_TIMING_ON != B_TIMEOUT_T)
+    // 1 click (before timeout): go to memorized level, but allow abort for double click
+    else if (event == EV_click3_release) {
+        #ifdef USE_MANUAL_MEMORY
+        if (manual_memory)
+            set_level(nearest_level(manual_memory));
+        else
+        #endif
+        set_level(nearest_level(memorized_level));
+        return MISCHIEF_MANAGED;
+    }
+    #endif  // if (B_TIMING_ON != B_TIMEOUT_T)
+    // 3 click: regular mode
     else if (event == EV_3clicks) {
-        blink_confirm(1);
-        set_state(off_state, 0);
+        #ifdef USE_MANUAL_MEMORY
+        if (manual_memory)
+            set_state(steady_state, manual_memory);
+        else
+        #endif
+        set_state(steady_state, memorized_level);
         return MISCHIEF_MANAGED;
     }
 
