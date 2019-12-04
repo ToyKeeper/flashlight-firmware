@@ -794,8 +794,14 @@ uint8_t steady_state(Event event, uint16_t arg) {
         }
         return MISCHIEF_MANAGED;
     }
-    // 3 clicks: toggle smooth vs discrete ramping
+    // 3 clicks: soft lockout
     else if (event == EV_3clicks) {
+        blink_confirm(2);
+        set_state(lockout_state, 0);
+        return MISCHIEF_MANAGED;
+    }
+    // 4 clicks: toggle smooth vs discrete ramping
+    else if (event == EV_4clicks) {
         ramp_style = !ramp_style;
         save_config();
         #ifdef START_AT_MEMORIZED_LEVEL
@@ -807,8 +813,8 @@ uint8_t steady_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     #ifdef USE_RAMP_CONFIG
-    // 4 clicks: configure this ramp mode
-    else if (event == EV_4clicks) {
+    // 5 clicks: configure this ramp mode
+    else if (event == EV_5clicks) {
         push_state(ramp_config_state, 0);
         return MISCHIEF_MANAGED;
     }
@@ -944,12 +950,12 @@ uint8_t steady_state(Event event, uint16_t arg) {
     }
     #endif
     #ifdef USE_MANUAL_MEMORY
-    else if (event == EV_5clicks) {
+    else if (event == EV_6clicks) {
         manual_memory = actual_level;
         save_config();
         blip();
     }
-    else if (event == EV_click5_hold) {
+    else if (event == EV_click6_hold) {
         if (0 == arg) {
             manual_memory = 0;
             save_config();
