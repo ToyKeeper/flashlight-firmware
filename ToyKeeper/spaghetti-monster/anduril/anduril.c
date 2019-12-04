@@ -99,6 +99,8 @@
 //#define USE_SOS_MODE_IN_FF_GROUP  // put SOS in the "boring strobes" mode
 //#define USE_SOS_MODE_IN_BLINKY_GROUP  // put SOS in the blinkies mode group
 
+#define USE_BATTCHECK
+
 /***** specific settings for known driver types *****/
 #include "tk.h"
 #include incfile(CONFIGFILE)
@@ -117,6 +119,7 @@
 #endif
 #ifdef USE_THERMAL_REGULATION
 #define USE_SET_LEVEL_GRADUALLY  // isn't used except for thermal adjustments
+#define USE_BLINK_NUM
 #endif
 
 
@@ -127,7 +130,6 @@
 #define RAMP_LENGTH 150  // default, if not overridden in a driver cfg file
 #endif
 #define MAX_BIKING_LEVEL 120  // should be 127 or less
-#define USE_BATTCHECK
 
 #if defined(USE_MUGGLE_MODE)
 #ifndef MUGGLE_FLOOR
@@ -1603,11 +1605,13 @@ uint8_t tempcheck_state(Event event, uint16_t arg) {
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #ifdef USE_BATTCHECK
     // 2 clicks: battcheck mode
     else if (event == EV_2clicks) {
         set_state(battcheck_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #endif
     // 4 clicks: thermal config mode
     else if (event == EV_4clicks) {
         push_state(thermal_config_state, 0);
