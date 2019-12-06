@@ -323,7 +323,7 @@ void blip();
 #if defined(USE_INDICATOR_LED) && defined(TICK_DURING_STANDBY)
 void indicator_blink(uint8_t arg);
 #endif
-#if defined(USE_AUX_RGB_LEDS) && defined(TICK_DURING_STANDBY)
+#if defined(USE_AUX_RGB_LEDS)
 void rgb_led_update(uint8_t mode, uint8_t arg);
 /*
  * 0: R
@@ -2390,7 +2390,7 @@ void indicator_blink(uint8_t arg) {
 }
 #endif
 
-#if defined(USE_AUX_RGB_LEDS) && defined(TICK_DURING_STANDBY)
+#if defined(USE_AUX_RGB_LEDS)
 // do fancy stuff with the RGB aux LEDs
 // mode: 0bPPPPCCCC where PPPP is the pattern and CCCC is the color
 // arg: time slice number
