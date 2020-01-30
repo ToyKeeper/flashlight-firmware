@@ -86,9 +86,11 @@ ISR(WDT_vect) {
 }
 
 void WDT_inner() {
-    irq_wdt = 0;  // WDT event handled; reset flag
-
+    #if defined(USE_LVP) || defined(USE_SLEEP_LVP) || defined(USE_THERMAL_REGULATION)
     static uint8_t adc_trigger = 0;
+    #endif
+
+    irq_wdt = 0;  // WDT event handled; reset flag
 
     // cache this here to reduce ROM size, because it's volatile
     uint16_t ticks_since_last = ticks_since_last_event;
@@ -119,9 +121,9 @@ void WDT_inner() {
         return;  // no sleep LVP needed if nothing drains power while off
         #else
         // stop here, usually...  but proceed often enough for sleep LVP to work
-        if (0 != (ticks_since_last & 0x7f)) return;
+        if (0 != (ticks_since_last & 0x1ff) && voltage) return;
 
-        adc_trigger = 255;  // make sure a measurement will happen
+        adc_trigger = 0;  // make sure a measurement will happen
         ADC_on();  // enable ADC voltage measurement functions temporarily
         #endif
     }
@@ -177,14 +179,11 @@ void WDT_inner() {
     }
     #endif
 
-    #if defined(USE_LVP) || defined(USE_THERMAL_REGULATION)
-    // start a new ADC measurement every 4 ticks
-    adc_trigger ++;
-    if (0 == (adc_trigger & 3)) {
+    #if defined(USE_LVP) || defined(USE_SLEEP_LVP) || defined(USE_THERMAL_REGULATION)
+    if (!adc_trigger) {
         ADC_start_measurement();
-        irq_adc_stable = 0;
-        adcint_enable = 1;
     }
+    adc_trigger = (adc_trigger + 1) % (TICKS_PER_SECOND / 2);
     #endif
 }
 

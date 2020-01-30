@@ -120,17 +120,16 @@ Event types:
     LVP and thermal regulation:
 
       - EV_voltage_low: Sent whenever the input power drops below the 
-        VOLTAGE_LOW threshold.  Minimum of VOLTAGE_WARNING_SECONDS 
-        between events.
+        VOLTAGE_LOW threshold.  Minimum of one second between events.
 
       - EV_temperature_high: Sent whenever the MCU's projected temperature 
-        is higher than therm_ceil.  Minimum of THERMAL_WARNING_SECONDS 
+        is higher than therm_ceil.  Minimum of one second 
         between events.  The 'arg' indicates how far the temperature 
         exceeds the limit.
 
       - EV_temperature_low: Sent whenever the MCU's projected temperature 
         is lower than (therm_ceil - THERMAL_WINDOW_SIZE).  Minimum of 
-        THERMAL_WARNING_SECONDS between events.  The 'arg' indicates how 
+        one second between events.  The 'arg' indicates how 
         far the temperature exceeds the limit.
 
     Button presses:
@@ -290,15 +289,10 @@ Useful #defines:
         to compensate for voltage drop across the reverse-polarity 
         diode.
 
-      - VOLTAGE_WARNING_SECONDS: How long to wait between LVP events.
-
     - USE_THERMAL_REGULATION: Enable thermal regulation
 
       - DEFAULT_THERM_CEIL: Set the temperature limit to use by default 
         when the user hasn't configured anything.
-
-      - THERMAL_WARNING_SECONDS: How long to wait between temperature 
-        events.
 
     - USE_RAMPING: Enable smooth ramping helpers.
 

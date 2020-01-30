@@ -22,11 +22,10 @@
 // Anduril config file name (set it here or define it at the gcc command line)
 //#define CONFIGFILE cfg-blf-q8.h
 
-#define USE_LVP  // FIXME: won't build when this option is turned off
+#define USE_LVP
 
 // parameters for this defined below or per-driver
 #define USE_THERMAL_REGULATION
-#define DEFAULT_THERM_CEIL 45  // try not to get hotter than this
 
 #define USE_FACTORY_RESET
 //#define USE_SOFT_FACTORY_RESET  // only needed on models which can't use hold-button-at-boot
@@ -957,79 +956,40 @@ uint8_t steady_state(Event event, uint16_t arg) {
         if (arg == TICKS_PER_SECOND) ramp_direction = 1;
         #endif
         #ifdef USE_SET_LEVEL_GRADUALLY
-        // make thermal adjustment speed scale with magnitude
-        // also, adjust slower when going up
-        if ((arg & 1) &&
-            ((actual_level < THERM_FASTER_LEVEL) ||
-             (actual_level < gradual_target))) {
-            return MISCHIEF_MANAGED;  // adjust slower when not a high mode
-        }
-        #ifdef THERM_HARD_TURBO_DROP
-        else if ((! (actual_level < THERM_FASTER_LEVEL))
-                && (actual_level > gradual_target)) {
-            gradual_tick();
-        }
-        else {
-        #endif
-        // [int(62*4 / (x**0.8)) for x in (1,2,4,8,16,32,64,128)]
-        //uint8_t intervals[] = {248, 142, 81, 46, 26, 15, 8, 5};
-        // [int(62*4 / (x**0.9)) for x in (1,2,4,8,16,32,64,128)]
-        //uint8_t intervals[] = {248, 132, 71, 38, 20, 10, 5, 3};
-        // [int(62*4 / (x**0.95)) for x in (1,2,4,8,16,32,64,128)]
-        uint8_t intervals[] = {248, 128, 66, 34, 17, 9, 4, 2};
-        uint8_t diff;
-        static uint8_t ticks_since_adjust = 0;
-        if (gradual_target > actual_level) {
-            // rise at half speed (skip half the frames)
-            if (arg & 2) return MISCHIEF_MANAGED;
-            diff = gradual_target - actual_level;
-        } else {
-            diff = actual_level - gradual_target;
-        }
-        ticks_since_adjust ++;
-        // if there's any adjustment to be made, make it
+        int16_t diff = gradual_target - actual_level;
+        static uint16_t ticks_since_adjust = 0;
+        ticks_since_adjust++;
         if (diff) {
-            uint8_t magnitude = 0;
-            #ifndef THERM_HARD_TURBO_DROP
-            // if we're on a really high mode, drop faster
-            if ((actual_level >= THERM_FASTER_LEVEL)
-                && (actual_level > gradual_target)) { magnitude ++; }
-            #endif
-            while (diff) {
-                magnitude ++;
-                diff >>= 1;
+            uint16_t ticks_per_adjust = 256;
+            if (diff < 0) {
+                if (actual_level > THERM_FASTER_LEVEL) {
+                    #ifdef THERM_HARD_TURBO_DROP
+                    ticks_per_adjust >>= 2;
+                    #endif
+                    ticks_per_adjust >>= 2;
+                }
+            } else {
+                // rise at half speed
+                ticks_per_adjust <<= 1;
             }
-            uint8_t ticks_per_adjust = intervals[magnitude];
+            while (diff) {
+                ticks_per_adjust >>= 1;
+                diff /= 2; // must not be shifted right!
+            }
             if (ticks_since_adjust > ticks_per_adjust)
             {
                 gradual_tick();
                 ticks_since_adjust = 0;
             }
-            //if (!(arg % ticks_per_adjust)) gradual_tick();
         }
-        #ifdef THERM_HARD_TURBO_DROP
-        }
-        #endif
         #endif  // ifdef USE_SET_LEVEL_GRADUALLY
         return MISCHIEF_MANAGED;
     }
     #endif
     #ifdef USE_THERMAL_REGULATION
-    // overheating: drop by an amount proportional to how far we are above the ceiling
     else if (event == EV_temperature_high) {
         #if 0
         blip();
-        #endif
-        #ifdef THERM_HARD_TURBO_DROP
-        //if (actual_level > THERM_FASTER_LEVEL) {
-        if (actual_level == MAX_LEVEL) {
-            #ifdef USE_SET_LEVEL_GRADUALLY
-            set_level_gradually(THERM_FASTER_LEVEL);
-            target_level = THERM_FASTER_LEVEL;
-            #else
-            set_level_and_therm_target(THERM_FASTER_LEVEL);
-            #endif
-        } else
         #endif
         if (actual_level > MIN_THERM_STEPDOWN) {
             int16_t stepdown = actual_level - arg;
@@ -1043,8 +1003,6 @@ uint8_t steady_state(Event event, uint16_t arg) {
         }
         return MISCHIEF_MANAGED;
     }
-    // underheating: increase slowly if we're lower than the target
-    //               (proportional to how low we are)
     else if (event == EV_temperature_low) {
         #if 0
         blip();
@@ -1598,11 +1556,13 @@ uint8_t tempcheck_state(Event event, uint16_t arg) {
         set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #ifdef USE_BATTCHECK
     // 2 clicks: battcheck mode
     else if (event == EV_2clicks) {
         set_state(battcheck_state, 0);
         return MISCHIEF_MANAGED;
     }
+    #endif
     // 4 clicks: thermal config mode
     else if (event == EV_4clicks) {
         push_state(thermal_config_state, 0);
@@ -1628,7 +1588,7 @@ uint8_t beacon_state(Event event, uint16_t arg) {
         set_state(sos_state, 0);
         #elif defined(USE_THERMAL_REGULATION)
         set_state(tempcheck_state, 0);
-        #else
+        #elif defined(USE_BATTCHECK)
         set_state(battcheck_state, 0);
         #endif
         return MISCHIEF_MANAGED;
@@ -2010,6 +1970,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         return MISCHIEF_MANAGED;
     }
     #endif
+    #ifdef USE_LVP
     // low voltage is handled specially in muggle mode
     else if(event == EV_voltage_low) {
         uint8_t lvl = (actual_level >> 1) + (actual_level >> 2);
@@ -2020,6 +1981,7 @@ uint8_t muggle_state(Event event, uint16_t arg) {
         }
         return MISCHIEF_MANAGED;
     }
+    #endif
 
     return EVENT_NOT_HANDLED;
 }

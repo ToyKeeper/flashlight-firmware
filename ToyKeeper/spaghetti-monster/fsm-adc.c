@@ -20,6 +20,7 @@
 #ifndef FSM_ADC_C
 #define FSM_ADC_C
 
+#include <stdlib.h>
 
 static inline void set_admux_therm() {
     #if (ATTINY == 25) || (ATTINY == 45) || (ATTINY == 85) || (ATTINY == 1634)
@@ -30,7 +31,6 @@ static inline void set_admux_therm() {
     #else
         #error Unrecognized MCU type
     #endif
-    adc_channel = 1;
 }
 
 inline void set_admux_voltage() {
@@ -53,12 +53,19 @@ inline void set_admux_voltage() {
     #else
         #error Unrecognized MCU type
     #endif
-    adc_channel = 0;
 }
 
 inline void ADC_start_measurement() {
     #if (ATTINY == 25) || (ATTINY == 45) || (ATTINY == 85) || (ATTINY == 841) || (ATTINY == 1634)
         ADCSRA |= (1 << ADSC) | (1 << ADIE);
+    #else
+        #error unrecognized MCU type
+    #endif
+}
+
+inline void ADC_stop_measurement() {
+    #if (ATTINY == 25) || (ATTINY == 45) || (ATTINY == 85) || (ATTINY == 841) || (ATTINY == 1634)
+        ADCSRA &= ~(1 << ADIF | 1 << ADIE);
     #else
         #error unrecognized MCU type
     #endif
@@ -98,57 +105,63 @@ inline void ADC_off() {
     ADCSRA &= ~(1<<ADEN); //ADC off
 }
 
-#ifdef USE_VOLTAGE_DIVIDER
-static inline uint8_t calc_voltage_divider(uint16_t value) {
-    // use 9.7 fixed-point to get sufficient precision
-    uint16_t adc_per_volt = ((ADC_44<<7) - (ADC_22<<7)) / (44-22);
-    // incoming value is 8.2 fixed-point, so shift it 2 bits less
-    uint8_t result = ((value<<5) / adc_per_volt) + VOLTAGE_FUDGE_FACTOR;
-    return result;
-}
-#endif
-
-// Each full cycle runs 15.6X per second with just voltage enabled,
-// or 7.8X per second with voltage and temperature.
-#if defined(USE_LVP) && defined(USE_THERMAL_REGULATION)
-#define ADC_CYCLES_PER_SECOND 8
-#else
-#define ADC_CYCLES_PER_SECOND 16
-#endif
-
-#ifdef USE_THERMAL_REGULATION
-#define ADC_STEPS 2
-#else
-#define ADC_STEPS 1
-#endif
-
 // happens every time the ADC sampler finishes a measurement
 ISR(ADC_vect) {
-    #ifdef USE_PSEUDO_RAND
-    // real-world entropy makes this a true random, not pseudo
-    pseudo_rand_seed += ADCL;
-    #endif
+    #define ADC_PLUS_BITS 8 // oversampling strength
+    static uint8_t  adc_stable = 0;
+    static uint16_t adc_sum_counter = 0;
+    static uint32_t adc_sum = 0;
 
-    if (irq_adc_stable) {  // skip first result; it's junk
-        adc_values[adc_channel] = ADC;  // save this for later use
-        irq_adc = 1;  // a value was saved, so trigger deferred logic
+    ADC_start_measurement(); // mandatory in standby mode
+
+    if (!adc_stable) {
+        adc_stable = 1;
+        #ifdef USE_PSEUDO_RAND
+        // real-world entropy makes this a true random, not pseudo
+        pseudo_rand_seed += ADCL;
+        #endif
+        return;
     }
-    irq_adc_stable = 1;
 
-    // start another measurement
-    // (is explicit because it otherwise doesn't seem to happen during standby mode)
-    ADC_start_measurement();
+    if (adc_sum_counter < 10 * (1 << ADC_PLUS_BITS)) {
+        adc_sum += ADC; // latest 10-bit ADC reading
+        adc_sum_counter++;
+        if (!go_to_standby) return;
+    }
+    adc_10x = go_to_standby ? ADC * 10 : adc_sum >> ADC_PLUS_BITS;
+    adc_sum_counter = adc_sum = 0;
+
+    adc_stable = 0; // set the dirty flag for the next sequence
+    irq_adc = 1; // enough samples accumulated, trigger deferred logic
+
+    ADC_stop_measurement(); // abort free running mode
 }
 
 void ADC_inner() {
     irq_adc = 0;  // event handled
 
-    // the ADC triggers repeatedly when it's on, but we only want one value
-    // (so ignore everything after the first value, until it's manually reset)
-    if (! adcint_enable) return;
+    // what is being measured? 0 = battery voltage, 1 = temperature
+    static uint8_t adc_type = 0;
 
-    // disable after one iteration
-    adcint_enable = 0;
+    if (!adc_type) {  // voltage
+        #if defined(USE_LVP) || defined(USE_SLEEP_LVP) || defined(USE_BATTCHECK)
+            ADC_voltage_handler();
+        #endif
+        #ifdef USE_THERMAL_REGULATION
+            if (!go_to_standby) {  // only measure battery voltage while asleep
+                set_admux_therm();
+                adc_type = 1;
+            }
+        #endif
+    } else {  // temperature
+        #ifdef USE_THERMAL_REGULATION
+            ADC_temperature_handler();
+            #if defined(USE_LVP) || defined(USE_SLEEP_LVP) || defined(USE_BATTCHECK)
+            set_admux_voltage();
+            #endif
+            adc_type = 0; // always skip one cycle, even if we don't measure battery voltage
+        #endif
+    }
 
     #ifdef TICK_DURING_STANDBY
         // in sleep mode, turn off after just one measurement
@@ -156,74 +169,17 @@ void ADC_inner() {
         // (and the usual standby level is only ~20 uA)
         if (go_to_standby) ADC_off();
     #endif
-
-    // what is being measured? 0 = battery voltage, 1 = temperature
-    static uint8_t adc_step = 0;
-
-    #ifdef USE_LVP
-    if (0 == adc_step) {  // voltage
-        ADC_voltage_handler();
-    }
-    #endif
-
-    #ifdef USE_THERMAL_REGULATION
-    else if (1 == adc_step) {  // temperature
-        ADC_temperature_handler();
-    }
-    #endif
-
-    #if defined(TICK_DURING_STANDBY) && defined(USE_SLEEP_LVP)
-    // only measure battery voltage while asleep
-    if (go_to_standby) adc_step = 0;
-    else
-    #endif
-
-    adc_step = (adc_step + 1) & (ADC_STEPS-1);
-
-    // set the correct type of measurement for next time
-    #ifdef USE_THERMAL_REGULATION
-        #ifdef USE_LVP
-        if (0 == adc_step) set_admux_voltage();
-        else set_admux_therm();
-        #else
-        //set_admux_therm();
-        #error "USE_THERMAL_REGULATION set without USE_LVP"
-        #endif
-    #else
-        #ifdef USE_LVP
-        set_admux_voltage();
-        #endif
-    #endif
-
-    irq_adc_stable = 0;  // first result is unstable
 }
 
-
-#ifdef USE_LVP
+#if defined(USE_LVP) || defined(USE_SLEEP_LVP) || defined(USE_BATTCHECK)
+// Runs once per second (unless in standby)
 static inline void ADC_voltage_handler() {
-    static uint8_t lvp_timer = 0;
-    static uint8_t lvp_lowpass = 0;
-    #define LVP_TIMER_START (VOLTAGE_WARNING_SECONDS*ADC_CYCLES_PER_SECOND)  // N seconds between LVP warnings
-    #define LVP_LOWPASS_STRENGTH ADC_CYCLES_PER_SECOND  // lowpass for one second
-
-    uint16_t measurement = adc_values[0];  // latest 10-bit ADC reading
-
-    #ifdef USE_VOLTAGE_LOWPASS
-        static uint16_t prev_measurement = 0;
-
-        // prime on first execution, or while asleep
-        if (go_to_standby || (! prev_measurement)) prev_measurement = measurement;
-
-        // only allow raw value to go up or down by 1 per iteration
-        if (measurement > prev_measurement) measurement = prev_measurement + 1;
-        else if (measurement < prev_measurement) measurement = prev_measurement - 1;
-
-        // remember for later
-        prev_measurement = measurement;
-    #endif  // no USE_VOLTAGE_LOWPASS
-
+    uint16_t measurement = (adc_10x + 5) / 10;
     #ifdef USE_VOLTAGE_DIVIDER
-    voltage = calc_voltage_divider(measurement);
+    // use 9.7 fixed-point to get sufficient precision
+    uint16_t adc_per_volt = ((ADC_44<<7) - (ADC_22<<7)) / (44-22);
+    // incoming value is 8.2 fixed-point, so shift it 2 bits less
+    voltage = ((measurement<<5) / adc_per_volt) + VOLTAGE_FUDGE_FACTOR;
     #else
     // calculate actual voltage: volts * 10
     // ADC = 1.1 * 1024 / volts
@@ -231,178 +187,70 @@ static inline void ADC_voltage_handler() {
     //voltage = (uint16_t)(1.1*1024*10)/measurement + VOLTAGE_FUDGE_FACTOR;
     voltage = ((uint16_t)(2*1.1*1024*10)/measurement + VOLTAGE_FUDGE_FACTOR) >> 1;
     #endif
-
-    // if low, callback EV_voltage_low / EV_voltage_critical
-    //         (but only if it has been more than N ticks since last call)
-    if (lvp_timer) {
-        lvp_timer --;
-    } else {  // it has been long enough since the last warning
-        if (voltage < VOLTAGE_LOW) {
-            if (lvp_lowpass < LVP_LOWPASS_STRENGTH) {
-                lvp_lowpass ++;
-            } else {
-                // try to send out a warning
-                //uint8_t err = emit(EV_voltage_low, 0);
-                //uint8_t err = emit_now(EV_voltage_low, 0);
-                emit(EV_voltage_low, 0);
-                //if (!err) {
-                    // on successful warning, reset counters
-                    lvp_timer = LVP_TIMER_START;
-                    lvp_lowpass = 0;
-                //}
-            }
-        } else {
-            // voltage not low?  reset count
-            lvp_lowpass = 0;
-        }
+    #if defined(USE_LVP) || defined(USE_SLEEP_LVP)
+    if (voltage < VOLTAGE_LOW) {
+        emit(EV_voltage_low, 0);
     }
+    #endif  // ifdef USE_LVP
 }
 #endif
 
 
 #ifdef USE_THERMAL_REGULATION
+// Runs once per second (unless in standby)
 static inline void ADC_temperature_handler() {
-    // thermal declarations
-    #ifndef THERMAL_UPDATE_SPEED
-    #define THERMAL_UPDATE_SPEED 2
+    #define NUM_HISTORY_TEMPS 4 // hardcoded, not intended to be changed
+    #ifndef THERM_LOOKAHEAD
+    #define THERM_LOOKAHEAD 5 // might be lowered with lower power to mass ratios
     #endif
-    #define NUM_THERMAL_VALUES_HISTORY 8
-    static uint8_t history_step = 0;  // don't update history as often
-    static int16_t temperature_history[NUM_THERMAL_VALUES_HISTORY];
-    static uint8_t temperature_timer = 0;
-    static uint8_t overheat_lowpass = 0;
-    static uint8_t underheat_lowpass = 0;
-    #define TEMPERATURE_TIMER_START ((THERMAL_WARNING_SECONDS-2)*ADC_CYCLES_PER_SECOND)  // N seconds between thermal regulation events
-    #define OVERHEAT_LOWPASS_STRENGTH (ADC_CYCLES_PER_SECOND*2)  // lowpass for 2 seconds
-    #define UNDERHEAT_LOWPASS_STRENGTH (ADC_CYCLES_PER_SECOND*2)  // lowpass for 2 seconds
+    const  int16_t temp_target = therm_ceil * 10 - 5;
+    static int16_t temp_history[NUM_HISTORY_TEMPS];
+    static uint8_t temp_history_index = 0;
+    static uint8_t temp_record_offset = 0;
+    static int16_t temp_offset_100x = 0;
 
-    // TODO: left-shift this so the lowpass can get higher resolution
-    // TODO: increase the sampling rate, to keep the lowpass from lagging
-    uint16_t measurement = adc_values[1];  // latest 10-bit ADC reading
-
-    // Convert ADC units to Celsius (ish)
-    int16_t temp = measurement - 275 + THERM_CAL_OFFSET + (int16_t)therm_cal_offset;
+    int16_t temp_10x = adc_10x + 10 * (THERM_CAL_OFFSET + therm_cal_offset - 275);
+    temperature = (temp_10x + 5) / 10; // save temperature C (ish) for later use in the ui
 
     // prime on first execution
     if (reset_thermal_history) {
         reset_thermal_history = 0;
-        temperature = temp;
-        for(uint8_t i=0; i<NUM_THERMAL_VALUES_HISTORY; i++)
-            temperature_history[i] = temp;
-    } else {  // update our current temperature estimate
-        // crude lowpass filter
-        // (limit rate of change to 1 degree per measurement)
-        if (temp > temperature) {
-            temperature ++;
-        } else if (temp < temperature) {
-            temperature --;
-        }
+        temp_record_offset = 0;
+        temp_offset_100x = 0;
+        for (uint8_t i=0; i<NUM_HISTORY_TEMPS; i++)
+            temp_history[i] = temp_10x;
     }
 
-    // guess what the temperature will be in a few seconds
-    int16_t pt;
-    {
-        int16_t diff;
-        int16_t t = temperature;
+    int16_t temp_slope = temp_10x - temp_history[temp_history_index];
+    temp_history[temp_history_index] = temp_10x;
+    temp_history_index = (temp_history_index + 1) % NUM_HISTORY_TEMPS;
 
-        // algorithm tweaking; not really intended to be modified
-        // how far ahead should we predict?
-        #ifndef THERM_PREDICTION_STRENGTH
-        #define THERM_PREDICTION_STRENGTH 4
+    int16_t predicted_temp = temp_10x + temp_slope * THERM_LOOKAHEAD;
+    int16_t offset = predicted_temp - temp_target + temp_offset_100x / 10;
+
+    if (offset > 5 && temp_slope >= 0) {
+        temp_record_offset = 5;
+        int16_t howmuch = (offset / 6) + (temp_slope >> 1);
+        emit(EV_temperature_high, howmuch);
+    } else if (temp_record_offset) {
+        temp_record_offset--;
+        int16_t to_100x = 4 * (temp_target - temp_10x);
+        if (!temp_record_offset && to_100x > temp_offset_100x) {
+            temp_offset_100x = to_100x;
+        }
+    } else if ((offset < -15 && temp_slope < -15) || (temp_slope <= 0 && offset < -50)) {
+        #ifdef USE_LVP
+        if (voltage > VOLTAGE_LOW)
         #endif
-        // how proportional should the adjustments be?  (not used yet)
-        #ifndef THERM_RESPONSE_MAGNITUDE
-        #define THERM_RESPONSE_MAGNITUDE 128
-        #endif
-        // acceptable temperature window size in C
-        #define THERM_WINDOW_SIZE 5
-        // highest temperature allowed
-        #define THERM_CEIL ((int16_t)therm_ceil)
-        // bottom of target temperature window
-        #define THERM_FLOOR (THERM_CEIL - THERM_WINDOW_SIZE)
-
-        // if it's time to rotate the thermal history, do it
-        history_step ++;
-        #if (THERMAL_UPDATE_SPEED == 4)  // new value every 4s
-        #define THERM_HISTORY_STEP_MAX (4*ADC_CYCLES_PER_SECOND)
-        #elif (THERMAL_UPDATE_SPEED == 2)  // new value every 2s
-        #define THERM_HISTORY_STEP_MAX (2*ADC_CYCLES_PER_SECOND)
-        #elif (THERMAL_UPDATE_SPEED == 1)  // new value every 1s
-        #define THERM_HISTORY_STEP_MAX (ADC_CYCLES_PER_SECOND)
-        #elif (THERMAL_UPDATE_SPEED == 0)  // new value every 0.5s
-        #define THERM_HISTORY_STEP_MAX (ADC_CYCLES_PER_SECOND/2)
-        #endif
-        if (THERM_HISTORY_STEP_MAX == history_step) {
-            history_step = 0;
-            // rotate measurements and add a new one
-            for (uint8_t i=0; i<NUM_THERMAL_VALUES_HISTORY-1; i++) {
-                temperature_history[i] = temperature_history[i+1];
-            }
-            temperature_history[NUM_THERMAL_VALUES_HISTORY-1] = t;
+        {
+            int16_t howmuch = (-offset / 12) + (-temp_slope >> 1);
+            emit(EV_temperature_low, howmuch);
         }
-
-        // guess what the temp will be several seconds in the future
-        // diff = rate of temperature change
-        //diff = temperature_history[NUM_THERMAL_VALUES_HISTORY-1] - temperature_history[0];
-        diff = t - temperature_history[0];
-        // slight bias toward zero; ignore very small changes (noise)
-        for (uint8_t z=0; z<3; z++) {
-            if (diff < 0) diff ++;
-            if (diff > 0) diff --;
-        }
-        // projected_temperature = current temp extended forward by amplified rate of change
-        //projected_temperature = temperature_history[NUM_THERMAL_VALUES_HISTORY-1] + (diff<<THERM_PREDICTION_STRENGTH);
-        pt = projected_temperature = t + (diff<<THERM_PREDICTION_STRENGTH);
-    }
-
-    // cancel counters if appropriate
-    if (pt > THERM_FLOOR) {
-        underheat_lowpass = 0;  // we're probably not too cold
-    }
-    if (pt < THERM_CEIL) {
-        overheat_lowpass = 0;  // we're probably not too hot
-    }
-
-    if (temperature_timer) {
-        temperature_timer --;
-    } else {  // it has been long enough since the last warning
-
-        // Too hot?
-        if (pt > THERM_CEIL) {
-            if (overheat_lowpass < OVERHEAT_LOWPASS_STRENGTH) {
-                overheat_lowpass ++;
-            } else {
-                // reset counters
-                overheat_lowpass = 0;
-                temperature_timer = TEMPERATURE_TIMER_START;
-                // how far above the ceiling?
-                //int16_t howmuch = (pt - THERM_CEIL) * THERM_RESPONSE_MAGNITUDE / 128;
-                int16_t howmuch = pt - THERM_CEIL;
-                // try to send out a warning
-                emit(EV_temperature_high, howmuch);
-            }
-        }
-
-        // Too cold?
-        else if (pt < THERM_FLOOR) {
-            if (underheat_lowpass < UNDERHEAT_LOWPASS_STRENGTH) {
-                underheat_lowpass ++;
-            } else {
-                // reset counters
-                underheat_lowpass = 0;
-                temperature_timer = TEMPERATURE_TIMER_START;
-                // how far below the floor?
-                //int16_t howmuch = (THERM_FLOOR - pt) * THERM_RESPONSE_MAGNITUDE / 128;
-                int16_t howmuch = THERM_FLOOR - pt;
-                // try to send out a warning (unless voltage is low)
-                // (LVP and underheat warnings fight each other)
-                if (voltage > VOLTAGE_LOW)
-                    emit(EV_temperature_low, howmuch);
-            }
-        }
+    } else if (temp_offset_100x > 0) {
+        temp_offset_100x--;
     }
 }
-#endif
+#endif  // ifdef USE_THERMAL_REGULATION
 
 
 #ifdef USE_BATTCHECK

@@ -21,11 +21,17 @@
 #define FSM_ADC_H
 
 
-#ifdef USE_LVP
-// default 5 seconds between low-voltage warning events
-#ifndef VOLTAGE_WARNING_SECONDS
-#define VOLTAGE_WARNING_SECONDS 5
-#endif
+volatile uint16_t adc_10x = 0; // oversampled ADC result
+volatile uint8_t irq_adc = 0; // new ADC result available?
+void ADC_inner();  // do the actual ADC-related calculations
+
+inline void ADC_on();
+inline void ADC_off();
+inline void ADC_start_measurement();
+inline void ADC_stop_measurement();
+
+
+#if defined(USE_LVP) || defined(USE_BATTCHECK) || defined(USE_AUX_RGB_LEDS)
 // low-battery threshold in volts * 10
 #ifndef VOLTAGE_LOW
 #define VOLTAGE_LOW 29
@@ -38,18 +44,11 @@
 #define VOLTAGE_FUDGE_FACTOR 5
 #endif
 #endif
-
-volatile uint8_t irq_adc = 0;  // ADC interrupt happened?
-volatile uint8_t irq_adc_stable = 0;  // have we passed the 1st junk value yet?
-uint8_t adc_channel = 0;  // 0=voltage, 1=temperature
-uint16_t adc_values[2];  // last ADC measurements (0=voltage, 1=temperature)
-uint8_t adcint_enable = 0;  // is the current ADC result needed?
-void ADC_inner();  // do the actual ADC-related calculations
-
 static inline void ADC_voltage_handler();
-volatile uint8_t voltage = 0;
+uint8_t voltage = 0;
+#ifdef USE_LVP
 void low_voltage();
-
+#endif
 #ifdef USE_BATTCHECK
 void battcheck();
 #ifdef BATTCHECK_VpT
@@ -63,9 +62,8 @@ void battcheck();
 
 
 #ifdef USE_THERMAL_REGULATION
-// default 5 seconds between thermal regulation events
-#ifndef THERMAL_WARNING_SECONDS
-#define THERMAL_WARNING_SECONDS 5
+#ifndef USE_BLINK_NUM
+#define USE_BLINK_NUM
 #endif
 // try to keep temperature below 45 C
 #ifndef DEFAULT_THERM_CEIL
@@ -79,22 +77,12 @@ void battcheck();
 #ifndef THERM_CAL_OFFSET
 #define THERM_CAL_OFFSET 0
 #endif
-// temperature now, in C (ish) * 2  (14.1 fixed-point)
-volatile int16_t temperature;
-// temperature in a few seconds, in C (ish) * 2  (14.1 fixed-point)
-volatile int16_t projected_temperature;  // Fight the future!
+int8_t temperature = 0; // C (ish)
 uint8_t therm_ceil = DEFAULT_THERM_CEIL;
 int8_t therm_cal_offset = 0;
-//void low_temperature();
-//void high_temperature();
-volatile uint8_t reset_thermal_history = 1;
+uint8_t reset_thermal_history = 1;
 static inline void ADC_temperature_handler();
 #endif  // ifdef USE_THERMAL_REGULATION
-
-
-inline void ADC_on();
-inline void ADC_off();
-inline void ADC_start_measurement();
 
 
 #endif

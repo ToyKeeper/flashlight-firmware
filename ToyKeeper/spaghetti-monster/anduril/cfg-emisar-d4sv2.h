@@ -42,16 +42,6 @@
 // stop panicking at ~50% power or ~2000 lm
 #define THERM_FASTER_LEVEL 130
 
-// no need to be extra-careful on this light
-#ifdef THERM_HARD_TURBO_DROP
-#undef THERM_HARD_TURBO_DROP
-#endif
-
-// respond to thermal changes faster
-#define THERMAL_WARNING_SECONDS 3
-#define THERMAL_UPDATE_SPEED 2
-#define THERM_PREDICTION_STRENGTH 4
-
 // easier access to thermal config mode, for Emisar
 #define USE_TENCLICK_THERMAL_CONFIG
 
@@ -59,9 +49,7 @@
 #undef BLINK_AT_RAMP_MIDDLE
 #endif
 
+#define THERM_LOOKAHEAD 6
+
 // seems relevant on attiny1634
 #define THERM_CAL_OFFSET 5
-
-// attiny1634 has enough space to smooth out voltage readings
-#define USE_VOLTAGE_LOWPASS
-

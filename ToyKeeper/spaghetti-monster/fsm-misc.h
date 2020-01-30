@@ -24,7 +24,7 @@
 void auto_clock_speed();
 #endif
 
-#if defined(USE_BLINK_NUM) || defined(USE_BLINK_DIGIT)
+#if defined(USE_BLINK_NUM) || defined(USE_BLINK_DIGIT) || defined(USE_VERSION_CHECK)
 #ifndef BLINK_BRIGHTNESS
 #define BLINK_BRIGHTNESS (MAX_LEVEL/6)
 #endif

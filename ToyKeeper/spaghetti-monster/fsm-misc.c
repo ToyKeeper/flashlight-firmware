@@ -40,7 +40,7 @@ void auto_clock_speed() {
 }
 #endif
 
-#if defined(USE_BLINK_NUM) || defined(USE_BLINK_DIGIT)
+#if defined(USE_BLINK_NUM) || defined(USE_BLINK_DIGIT) || defined(USE_VERSION_CHECK)
 #define BLINK_SPEED 1000
 uint8_t blink_digit(uint8_t num) {
     //StatePtr old_state = current_state;
