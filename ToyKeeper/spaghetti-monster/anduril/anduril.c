@@ -101,6 +101,10 @@
 
 #define USE_BATTCHECK
 
+// enable automatically locking out when the light is off for a long time
+#define USE_AUTO_LOCKOUT
+#define LOCKOUT_TIME       300 // seconds, approximately
+
 /***** specific settings for known driver types *****/
 #include "tk.h"
 #include incfile(CONFIGFILE)
@@ -347,6 +351,13 @@ void rgb_led_update(uint8_t mode, uint8_t arg);
 #endif
 uint8_t rgb_led_off_mode = RGB_LED_OFF_DEFAULT;
 uint8_t rgb_led_lockout_mode = RGB_LED_LOCKOUT_DEFAULT;
+
+#if defined(USE_AUTO_LOCKOUT) && !defined(TICK_DURING_STANDBY)
+static uint8_t preview_mode = 0;
+#define RGB_PREVIEW_MODE() (preview_mode)
+#else
+#define RGB_PREVIEW_MODE() (!go_to_standby)
+#endif
 #endif
 
 #ifdef USE_FACTORY_RESET
@@ -507,6 +518,11 @@ const PROGMEM uint8_t version_number[] = VERSION_NUMBER;
 uint8_t version_check_state(Event event, uint16_t arg);
 #endif
 
+#if defined(USE_AUTO_LOCKOUT) && defined(TICK_DURING_STANDBY)
+#define LOCKOUT_SLEEP_TICKS (STANDBY_TICKS_PER_SECOND * LOCKOUT_TIME)
+#elif defined(USE_AUTO_LOCKOUT)
+#define LOCKOUT_TICKS ((uint16_t)LOCKOUT_TIME * (uint16_t)TICKS_PER_SECOND)
+#endif
 uint8_t off_state(Event event, uint16_t arg) {
     // turn emitter off when entering state
     if (event == EV_enter_state) {
@@ -518,13 +534,25 @@ uint8_t off_state(Event event, uint16_t arg) {
         #endif
         // sleep while off  (lower power use)
         // (unless delay requested; give the ADC some time to catch up)
+        // (and unless the standby would prevent auto lockout)
+        #if !defined(USE_AUTO_LOCKOUT) || defined(TICK_DURING_STANDBY)
         if (! arg) { go_to_standby = 1; }
+        #endif
         return MISCHIEF_MANAGED;
     }
-    // go back to sleep eventually if we got bumped but didn't leave "off" state
     else if (event == EV_tick) {
+        #if defined(USE_AUTO_LOCKOUT) && !defined(TICK_DURING_STANDBY)
+        if (arg > LOCKOUT_TICKS) {
+            set_state(lockout_state, 0);
+            return MISCHIEF_MANAGED;
+        }
+        else
+        #endif
+        // go back to sleep eventually if we got bumped but didn't leave "off" state
         if (arg > HOLD_TIMEOUT) {
+            #if !defined(USE_AUTO_LOCKOUT) || defined(TICK_DURING_STANDBY)
             go_to_standby = 1;
+            #endif
             #ifdef USE_INDICATOR_LED
             indicator_led(indicator_led_mode & 0x03);
             #elif defined(USE_AUX_RGB_LEDS)
@@ -533,9 +561,16 @@ uint8_t off_state(Event event, uint16_t arg) {
         }
         return MISCHIEF_MANAGED;
     }
-    #if defined(TICK_DURING_STANDBY) && (defined(USE_INDICATOR_LED) || defined(USE_AUX_RGB_LEDS))
+    #if defined(TICK_DURING_STANDBY) && (defined(USE_INDICATOR_LED) || defined(USE_AUX_RGB_LEDS) || defined(USE_AUTO_LOCKOUT))
     // blink the indicator LED, maybe
+    // or wait for lockout
     else if (event == EV_sleep_tick) {
+        #ifdef USE_AUTO_LOCKOUT
+        if (arg > LOCKOUT_SLEEP_TICKS) {
+            set_state(lockout_state, 0);
+            return MISCHIEF_MANAGED;
+        }
+        #endif
         #ifdef USE_INDICATOR_LED
         if ((indicator_led_mode & 0b00000011) == 0b00000011) {
             indicator_blink(arg);
@@ -686,6 +721,10 @@ uint8_t off_state(Event event, uint16_t arg) {
     }
     // 7 clicks (hold last): change RGB aux LED color
     else if (event == EV_click7_hold) {
+        set_level(0); // FIXME: why is this needed?
+        #if defined(USE_AUTO_LOCKOUT) && !defined(TICK_DURING_STANDBY)
+        preview_mode = 1;
+        #endif
         if (0 == (arg & 0x3f)) {
             uint8_t mode = (rgb_led_off_mode & 0x0f) + 1;
             mode = mode % RGB_LED_NUM_COLORS;
@@ -693,6 +732,9 @@ uint8_t off_state(Event event, uint16_t arg) {
             //save_config();
         }
         rgb_led_update(rgb_led_off_mode, arg);
+        #if defined(USE_AUTO_LOCKOUT) && !defined(TICK_DURING_STANDBY)
+        preview_mode = 0;
+        #endif
         return MISCHIEF_MANAGED;
     }
     else if (event == EV_click7_hold_release) {
@@ -1812,6 +1854,9 @@ uint8_t lockout_state(Event event, uint16_t arg) {
     }
     // click, click, click, hold: change RGB aux LED color
     else if (event == EV_click4_hold) {
+        #if defined(USE_AUTO_LOCKOUT) && !defined(TICK_DURING_STANDBY)
+        preview_mode = 1;
+        #endif
         if (0 == (arg & 0x3f)) {
             uint8_t mode = (rgb_led_lockout_mode & 0x0f) + 1;
             mode = mode % RGB_LED_NUM_COLORS;
@@ -1823,6 +1868,9 @@ uint8_t lockout_state(Event event, uint16_t arg) {
     }
     // click, click, click, hold, release: save new color
     else if (event == EV_click4_hold_release) {
+        #if defined(USE_AUTO_LOCKOUT) && !defined(TICK_DURING_STANDBY)
+        preview_mode = 0;
+        #endif
         save_config();
         return MISCHIEF_MANAGED;
     }
@@ -2413,7 +2461,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     uint8_t color = mode & 0x0f;
 
     // preview in blinking mode is awkward... use high instead
-    if ((! go_to_standby) && (pattern > 2)) { pattern = 2; }
+    if (RGB_PREVIEW_MODE() && (pattern > 2)) { pattern = 2; }
 
 
     uint8_t colors[] = {
@@ -2439,7 +2487,7 @@ void rgb_led_update(uint8_t mode, uint8_t arg) {
     }
     else {  // voltage
         // show actual voltage while asleep...
-        if (go_to_standby) {
+        if (!RGB_PREVIEW_MODE()) {
             // choose a color based on battery voltage
             if (volts >= 38) actual_color = colors[4];
             else if (volts >= 33) actual_color = colors[2];

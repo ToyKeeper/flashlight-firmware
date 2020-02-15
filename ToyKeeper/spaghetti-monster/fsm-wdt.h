@@ -21,6 +21,7 @@
 #define FSM_WDT_H
 
 #define TICKS_PER_SECOND 62
+#define STANDBY_TICKS_PER_SECOND (1<<(6-STANDBY_TICK_SPEED))
 
 void WDT_on();
 inline void WDT_off();
