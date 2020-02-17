@@ -105,6 +105,8 @@
 #define USE_AUTO_LOCKOUT
 #define LOCKOUT_TIME       300 // seconds, approximately
 
+#define INITIAL_BLINK_LEVEL (RAMP_SIZE/8)
+
 /***** specific settings for known driver types *****/
 #include "tk.h"
 #include incfile(CONFIGFILE)
@@ -2750,7 +2752,7 @@ void setup() {
     #else  // if not START_AT_MEMORIZED_LEVEL
 
     // blink at power-on to let user know power is connected
-    set_level(RAMP_SIZE/8);
+    set_level(INITIAL_BLINK_LEVEL);
     delay_4ms(3);
     set_level(0);
 
