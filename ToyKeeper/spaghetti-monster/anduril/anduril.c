@@ -2751,10 +2751,12 @@ void setup() {
 
     #else  // if not START_AT_MEMORIZED_LEVEL
 
+    #if INITIAL_BLINK_LEVEL > 0
     // blink at power-on to let user know power is connected
     set_level(INITIAL_BLINK_LEVEL);
     delay_4ms(3);
     set_level(0);
+    #endif
 
     #ifdef USE_FACTORY_RESET
     if (button_is_pressed())
