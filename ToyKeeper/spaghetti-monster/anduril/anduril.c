@@ -73,7 +73,7 @@
 
 // enable sunset (goodnight) mode
 #define USE_GOODNIGHT_MODE
-#define GOODNIGHT_TIME  60  // minutes (approximately)
+#define GOODNIGHT_TIME  120  // minutes (approximately) bk: default 60, changed 120
 #define GOODNIGHT_LEVEL 24  // ~11 lm
 
 // enable beacon mode
