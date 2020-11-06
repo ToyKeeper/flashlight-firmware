@@ -56,6 +56,11 @@ void blip() {
     set_level(temp);
 }
 
+int16_t clamp16(int16_t proposed, int16_t min, int16_t max) {
+    if (proposed < min) return min;
+    if (proposed > max) return max;
+    return proposed;
+}
 
 #endif
 

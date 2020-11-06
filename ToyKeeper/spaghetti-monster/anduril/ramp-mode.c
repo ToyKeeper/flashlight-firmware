@@ -291,9 +291,7 @@ uint8_t steady_state(Event event, uint16_t arg) {
         } else
         #endif
         if (actual_level > MIN_THERM_STEPDOWN) {
-            int16_t stepdown = actual_level - arg;
-            if (stepdown < MIN_THERM_STEPDOWN) stepdown = MIN_THERM_STEPDOWN;
-            else if (stepdown > MAX_LEVEL) stepdown = MAX_LEVEL;
+            int16_t stepdown = clamp16(actual_level - arg, MIN_THERM_STEPDOWN, MAX_LEVEL);
             #ifdef USE_SET_LEVEL_GRADUALLY
             set_level_gradually(stepdown);
             #else
@@ -310,9 +308,7 @@ uint8_t steady_state(Event event, uint16_t arg) {
         #endif
         if (actual_level < target_level) {
             //int16_t stepup = actual_level + (arg>>1);
-            int16_t stepup = actual_level + arg;
-            if (stepup > target_level) stepup = target_level;
-            else if (stepup < MIN_THERM_STEPDOWN) stepup = MIN_THERM_STEPDOWN;
+            int16_t stepup = clamp16(actual_level + arg, MIN_THERM_STEPDOWN, target_level);
             #ifdef USE_SET_LEVEL_GRADUALLY
             set_level_gradually(stepup);
             #else

@@ -24,5 +24,6 @@
 void blink_once();
 void blip();
 
+int16_t clamp16(int16_t proposed, int16_t min, int16_t max); 
 
 #endif
