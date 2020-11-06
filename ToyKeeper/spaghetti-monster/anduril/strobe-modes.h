@@ -49,6 +49,12 @@ strobe_mode_te strobe_type = candle_mode_e;
 #else
 strobe_mode_te strobe_type = 0;
 #endif
+#ifdef USE_MANUAL_STROBE_STATE
+// manual_strobe_type < NUM_STROBES specifies the
+// mode to enter from OFF.  A value of NUM_STROBES
+// is the usual automatic mode.
+strobe_mode_te manual_strobe_type = strobe_mode_END;
+#endif
 #endif
 
 

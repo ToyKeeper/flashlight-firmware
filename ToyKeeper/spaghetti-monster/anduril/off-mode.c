@@ -235,6 +235,10 @@ uint8_t off_state(Event event, uint16_t arg) {
     // click, click, long-click: strobe mode
     #ifdef USE_STROBE_STATE
     else if (event == EV_click3_hold) {
+	#ifdef USE_MANUAL_STROBE_STATE
+	if (manual_strobe_type != strobe_mode_END)
+	  strobe_type = manual_strobe_type;
+	#endif
         set_state(strobe_state, 0);
         return MISCHIEF_MANAGED;
     }

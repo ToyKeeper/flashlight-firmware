@@ -76,6 +76,9 @@ typedef enum {
     #ifdef USE_AUTOLOCK
     autolock_time_e,
     #endif
+    #ifdef USE_MANUAL_STROBE_STATE
+    manual_strobe_type_e,
+    #endif
     eeprom_indexes_e_END
 } eeprom_indexes_e;
 #define EEPROM_BYTES eeprom_indexes_e_END

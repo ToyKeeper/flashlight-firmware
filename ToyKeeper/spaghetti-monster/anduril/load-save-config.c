@@ -136,6 +136,9 @@ void save_config() {
     #ifdef USE_AUTOLOCK
     eeprom[autolock_time_e] = autolock_time;
     #endif
+    #ifdef USE_MANUAL_STROBE_STATE
+    eeprom[manual_strobe_type_e] = manual_strobe_type;
+    #endif
 
     save_eeprom();
 }

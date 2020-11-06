@@ -58,6 +58,20 @@ uint8_t strobe_state(Event event, uint16_t arg) {
         save_config();
         return MISCHIEF_MANAGED;
     }
+    #ifdef USE_MANUAL_STROBE_STATE
+    else if (event == EV_10clicks) {
+        manual_strobe_type = st;
+        save_config();
+        blink_once();
+        return MISCHIEF_MANAGED;
+    }
+    else if (event == EV_click10_hold) {
+        manual_strobe_type = strobe_mode_END;
+        save_config();
+        blink_once();
+        return MISCHIEF_MANAGED;
+    }
+    #endif
     // hold: change speed (go faster)
     //       or change brightness (brighter)
     else if (event == EV_click1_hold) {
