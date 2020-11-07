@@ -22,22 +22,23 @@
 
 #include "fun-mode.h"
 
-PROGMEM const PWM_DATATYPE pattern[] = {0b11101010, 0b10001011, 0b10101000, 0b10111000, 0b11101011, 0b10100011, 0b10101110, 0b00000010, 0b11101010, 0b00101000, 0b10101011, 0b10001000, 0b10101000, 0b00001110, 0b11100010, 0b11100011, 0b10001110, 0b00100010, 0b11101000, 0b10111010, 0b11101011, 0b10001010, 0b10111010, 0b11100000};
+PROGMEM const PWM_DATATYPE pattern[] = {0b11111100, 0b01000100, 0b01000000, 0b01001111, 0b11000100, 0b01000000, 0b01001111, 0b11000000, 0b11111100, 0b01001111, 0b11000100, 0b00001111, 0b11000100, 0b11111100, 0b00000000, 0b00000100, 0b11111100, 0b01000100, 0b00000100, 0b01000000, 0b01000100, 0b01001111, 0b11000000, 0b01000000, 0b01000100, 0b01000000, 0b00000000, 0b11111100, 0b11111100, 0b00000100, 0b11111100, 0b00001111, 0b11000000, 0b11111100, 0b00000100, 0b00000100, 0b11111100, 0b01000000, 0b01001111, 0b11000100, 0b11111100, 0b01001111, 0b11000000, 0b01000100, 0b01001111, 0b11000100, 0b11111100, 0b00000000, 0b00000000};
 #define PATTERN_SIZE (sizeof(pattern)/sizeof(PWM_DATATYPE))
 
 inline void fun_strobe_iter() {
+    uint8_t nominal_level = 
+                            #ifdef USE_BIKE_FLASHER_MODE
+                            bike_flasher_brightness / 4;
+                            #else
+                            32;
+                            #endif
+
     // one iteration of main loop()
     for(uint8_t i=0; i<PATTERN_SIZE; i++) {
         uint8_t code = PWM_GET(pattern, i);
-	for (uint8_t b = 0; b < 8; b++) {
-            set_level(code & 0x80 ? 
-                            #ifdef USE_BIKE_FLASHER_MODE
-			    bike_flasher_brightness 
-                            #else
-                            128
-                            #endif
-			    : 0);
-	    code = code << 1;
+	for (uint8_t b = 0; b < 4; b++) {
+            set_level(((code & 0xC0) >> 6) * nominal_level);
+	    code = code << 2;
 	    nice_delay_ms(
                             #ifdef USE_PARTY_STROBE_MODE
 			    strobe_delays[party_strobe_e]
