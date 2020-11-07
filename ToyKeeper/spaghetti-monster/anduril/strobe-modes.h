@@ -38,6 +38,9 @@ typedef enum {
     #ifdef USE_BIKE_FLASHER_MODE
     bike_flasher_e,
     #endif
+    #ifdef USE_FUN_STROBE_MODE
+    fun_strobe_e,
+    #endif
     strobe_mode_END
 } strobe_mode_te;
 
@@ -94,7 +97,6 @@ inline void bike_flasher_iter();
 #ifdef USE_CANDLE_MODE
 #include "candle-mode.h"
 #endif
-
 
 #if defined(USE_POLICE_STROBE_MODE) || defined(USE_SOS_MODE_IN_FF_GROUP)
 #define USE_BORING_STROBE_STATE

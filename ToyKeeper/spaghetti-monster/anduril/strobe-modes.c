@@ -23,6 +23,11 @@
 #include "strobe-modes.h"
 
 #ifdef USE_STROBE_STATE
+
+#ifdef USE_FUN_STROBE_MODE
+#include "fun-mode.c"
+#endif
+
 uint8_t strobe_state(Event event, uint16_t arg) {
     static int8_t ramp_direction = 1;
 
@@ -201,6 +206,12 @@ inline void strobe_state_iter() {
         #ifdef USE_BIKE_FLASHER_MODE
         case bike_flasher_e:
             bike_flasher_iter();
+            break;
+        #endif
+
+        #ifdef USE_FUN_STROBE_MODE
+        case fun_strobe_e:
+            fun_strobe_iter();
             break;
         #endif
     }
