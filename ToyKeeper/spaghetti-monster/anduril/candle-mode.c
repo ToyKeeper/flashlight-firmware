@@ -78,9 +78,8 @@ uint8_t candle_mode_state(Event event, uint16_t arg) {
             else if (candle_mode_brightness <= 1) { ramp_direction = 1; }
         }
         // change brightness, but not too far
-        candle_mode_brightness += ramp_direction;
-        if (candle_mode_brightness < 1) candle_mode_brightness = 1;
-        else if (candle_mode_brightness > MAX_CANDLE_LEVEL) candle_mode_brightness = MAX_CANDLE_LEVEL;
+        candle_mode_brightness = clamp8u(candle_mode_brightness + ramp_direction,
+                                         1, MAX_CANDLE_LEVEL);
         return MISCHIEF_MANAGED;
     }
     // reverse ramp direction on hold release

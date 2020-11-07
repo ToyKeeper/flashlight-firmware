@@ -62,5 +62,10 @@ int16_t clamp16(int16_t proposed, int16_t min, int16_t max) {
     return proposed;
 }
 
+uint8_t clamp8u(uint8_t proposed, uint8_t min, uint8_t max) {
+    if (proposed < min) return min;
+    if (proposed > max) return max;
+    return proposed;
+}
 #endif
 

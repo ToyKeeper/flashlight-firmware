@@ -90,11 +90,7 @@ uint8_t strobe_state(Event event, uint16_t arg) {
         else if (st == party_strobe_e) {
         #endif
             if ((arg & 1) == 0) {
-                uint8_t d = strobe_delays[st];
-                d -= ramp_direction;
-                if (d < 8) d = 8;
-                else if (d > 254) d = 254;
-                strobe_delays[st] = d;
+                strobe_delays[st] = clamp8u(strobe_delays[st] - ramp_direction, 8, 254);
             }
         }
         #endif
@@ -105,9 +101,8 @@ uint8_t strobe_state(Event event, uint16_t arg) {
         // biking mode brighter
         #ifdef USE_BIKE_FLASHER_MODE
         else if (st == bike_flasher_e) {
-            bike_flasher_brightness += ramp_direction;
-            if (bike_flasher_brightness < 2) bike_flasher_brightness = 2;
-            else if (bike_flasher_brightness > MAX_BIKING_LEVEL) bike_flasher_brightness = MAX_BIKING_LEVEL;
+            bike_flasher_brightness = clamp8u(bike_flasher_brightness + ramp_direction,
+                                              2, MAX_BIKING_LEVEL);
             set_level(bike_flasher_brightness);
         }
         #endif
