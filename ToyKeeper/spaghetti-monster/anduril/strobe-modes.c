@@ -194,8 +194,8 @@ inline void strobe_state_iter() {
 
         #if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
         case dual_strobe_e:
-	    dual_strobe_mode_iter();
-	    break;
+            dual_strobe_mode_iter();
+            break;
         #endif
 
         #ifdef USE_LIGHTNING_MODE
@@ -220,32 +220,32 @@ inline void strobe_state_iter() {
 #endif  // ifdef USE_STROBE_STATE
 
 #if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
-// Keep track of how long each of strobes has left before the next flash.
-// Once a flash starts, continue as long as we have some accrued level==0 time so that we don't
-// exceed a 1/4 duty cycle.
-// Wrap the whole thing in a while loop so we never leave while the lamp is on.
+// Flashlight will be on 1/DUTY_CYCLE
+#define DUTY_CYCLE 4
 inline void dual_strobe_mode_iter() {
+    uint8_t dual_brightness;
     do {
-	if (--dual_strobe_millis_1 <= 0) {
-           dual_strobe_state++;
-	   dual_strobe_millis_1 = strobe_delays[party_strobe_e];
+        if (--dual_strobe_cycle_1 <= 0) {
+           dual_strobe_cycle_1 = strobe_delays[party_strobe_e];
+           dual_strobe_duty_1 += dual_strobe_cycle_1;
         }
-        if (--dual_strobe_millis_2 <= 0) {
-            dual_strobe_state++;
-	    dual_strobe_millis_2 = strobe_delays[tactical_strobe_e];
+        if (--dual_strobe_cycle_2 <= 0) {
+           dual_strobe_cycle_2 = strobe_delays[tactical_strobe_e];
+           dual_strobe_duty_2 += dual_strobe_cycle_2;
         }
-        if (dual_strobe_state && dual_strobe_millis_sleep > 0 && dual_strobe_millis_on < 10) { 
-            set_level(STROBE_BRIGHTNESS);
-	    dual_strobe_millis_sleep -= 4;
-	    dual_strobe_millis_on++;
-        } else {
-            set_level(0);
-	    dual_strobe_millis_sleep += 1;
-	    dual_strobe_millis_on = 0;
-            dual_strobe_state = 0;
+        
+	dual_brightness = 0;
+        if (dual_strobe_duty_1 > 0) {
+           dual_brightness++;
+           dual_strobe_duty_1 -= DUTY_CYCLE;
+        } 
+        if (dual_strobe_duty_2 > 0) {
+           dual_brightness++;
+           dual_strobe_duty_2 -= DUTY_CYCLE;
         }
+        set_level(dual_brightness * (STROBE_BRIGHTNESS / 2));
         nice_delay_ms(1);
-    } while (dual_strobe_millis_on);
+    } while (dual_brightness);
 }
 #endif  // ifdef USE_DUAL_STROBE_MODE
 

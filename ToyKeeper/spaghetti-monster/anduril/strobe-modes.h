@@ -87,11 +87,10 @@ inline void party_tactical_strobe_mode_iter(uint8_t st);
 #endif
     
 #if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
-int16_t dual_strobe_millis_1 = 0;
-int16_t dual_strobe_millis_2 = 0;
-int16_t dual_strobe_millis_sleep = 0;
-uint8_t dual_strobe_millis_on = 0;
-uint8_t dual_strobe_state = 0;
+int16_t dual_strobe_cycle_1 = 0;
+int16_t dual_strobe_cycle_2 = 0;
+int16_t dual_strobe_duty_1 = 0;
+int16_t dual_strobe_duty_2 = 0;
 inline void dual_strobe_mode_iter();
 #endif
 
