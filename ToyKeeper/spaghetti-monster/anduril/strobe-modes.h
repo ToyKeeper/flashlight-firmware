@@ -29,6 +29,9 @@ typedef enum {
     #ifdef USE_TACTICAL_STROBE_MODE
     tactical_strobe_e,
     #endif
+    #if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
+    dual_strobe_e,
+    #endif
     #ifdef USE_LIGHTNING_MODE
     lightning_storm_e,
     #endif
@@ -81,6 +84,15 @@ inline void strobe_state_iter();
 // party / tactical strobe timing
 uint8_t strobe_delays[] = { 41, 67 };  // party strobe 24 Hz, tactical strobe 10 Hz
 inline void party_tactical_strobe_mode_iter(uint8_t st);
+#endif
+    
+#if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
+int16_t dual_strobe_millis_1 = 0;
+int16_t dual_strobe_millis_2 = 0;
+int16_t dual_strobe_millis_sleep = 0;
+uint8_t dual_strobe_millis_on = 0;
+uint8_t dual_strobe_state = 0;
+inline void dual_strobe_mode_iter();
 #endif
 
 #ifdef USE_LIGHTNING_MODE

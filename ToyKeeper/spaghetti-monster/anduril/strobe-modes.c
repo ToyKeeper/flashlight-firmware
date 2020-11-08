@@ -192,6 +192,12 @@ inline void strobe_state_iter() {
             break;
         #endif
 
+        #if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
+        case dual_strobe_e:
+	    dual_strobe_mode_iter();
+	    break;
+        #endif
+
         #ifdef USE_LIGHTNING_MODE
         case lightning_storm_e:
             lightning_storm_iter();
@@ -212,6 +218,36 @@ inline void strobe_state_iter() {
     }
 }
 #endif  // ifdef USE_STROBE_STATE
+
+#if defined(USE_PARTY_STROBE_MODE) && defined(USE_TACTICAL_STROBE_MODE) && defined(USE_DUAL_STROBE_MODE) 
+// Keep track of how long each of strobes has left before the next flash.
+// Once a flash starts, continue as long as we have some accrued level==0 time so that we don't
+// exceed a 1/4 duty cycle.
+// Wrap the whole thing in a while loop so we never leave while the lamp is on.
+inline void dual_strobe_mode_iter() {
+    do {
+	if (--dual_strobe_millis_1 <= 0) {
+           dual_strobe_state++;
+	   dual_strobe_millis_1 = strobe_delays[party_strobe_e];
+        }
+        if (--dual_strobe_millis_2 <= 0) {
+            dual_strobe_state++;
+	    dual_strobe_millis_2 = strobe_delays[tactical_strobe_e];
+        }
+        if (dual_strobe_state && dual_strobe_millis_sleep > 0 && dual_strobe_millis_on < 10) { 
+            set_level(STROBE_BRIGHTNESS);
+	    dual_strobe_millis_sleep -= 4;
+	    dual_strobe_millis_on++;
+        } else {
+            set_level(0);
+	    dual_strobe_millis_sleep += 1;
+	    dual_strobe_millis_on = 0;
+            dual_strobe_state = 0;
+        }
+        nice_delay_ms(1);
+    } while (dual_strobe_millis_on);
+}
+#endif  // ifdef USE_DUAL_STROBE_MODE
 
 #if defined(USE_PARTY_STROBE_MODE) || defined(USE_TACTICAL_STROBE_MODE)
 inline void party_tactical_strobe_mode_iter(uint8_t st) {
