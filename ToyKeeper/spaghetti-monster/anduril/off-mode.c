@@ -212,6 +212,7 @@ uint8_t off_state(Event event, uint16_t arg) {
             blink_once();
             simple_ui_active = 0;
             save_config();
+            blink_once();
         }
         else {  // configure simple UI ramp
             push_state(simple_ui_config_state, 0);
