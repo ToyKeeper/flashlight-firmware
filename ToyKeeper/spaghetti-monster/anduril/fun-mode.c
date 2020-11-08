@@ -48,5 +48,6 @@ inline void fun_strobe_iter() {
 			    );
         }
     }
+    set_level(0);
 } 
 #endif
