@@ -76,6 +76,9 @@ void load_config() {
         #ifdef USE_AUTOLOCK
         autolock_time = eeprom[autolock_time_e];
         #endif
+        #ifdef USE_MANUAL_STROBE_STATE
+        eeprom[manual_strobe_type_e] = manual_strobe_type;
+        #endif
     }
     #ifdef START_AT_MEMORIZED_LEVEL
     if (load_eeprom_wl()) {
