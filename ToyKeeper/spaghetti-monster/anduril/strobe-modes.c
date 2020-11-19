@@ -65,12 +65,14 @@ uint8_t strobe_state(Event event, uint16_t arg) {
     }
     #ifdef USE_MANUAL_STROBE_STATE
     else if (event == EV_10clicks) {
+        // 3H from off will start in this mode.
         manual_strobe_type = st;
         save_config();
         blink_once();
         return MISCHIEF_MANAGED;
     }
     else if (event == EV_click10_hold) {
+        // 10H reverts back to "automatic" mode.
         manual_strobe_type = strobe_mode_END;
         save_config();
         blink_once();
@@ -245,7 +247,7 @@ inline void dual_strobe_mode_iter() {
         }
         set_level(dual_brightness * (STROBE_BRIGHTNESS / 2));
         nice_delay_ms(1);
-    } while (dual_brightness);
+    } while (dual_brightness);  // Don't exit until lamp is off.
 }
 #endif  // ifdef USE_DUAL_STROBE_MODE
 
