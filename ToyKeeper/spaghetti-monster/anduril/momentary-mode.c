@@ -30,6 +30,17 @@ uint8_t momentary_state(Event event, uint16_t arg) {
     }
     #endif
 
+    #ifdef ALLOW_INTERMITTENT_ESCAPE
+    if (event == EV_click10_hold) {
+        blink_once();
+        // reset button sequence to avoid activating anything in ramp mode
+        current_event = 0;
+        // ... and back to ramp mode
+        set_state(steady_state, 1);
+        return MISCHIEF_MANAGED;
+    }
+    #endif
+
     // light up when the button is pressed; go dark otherwise
     // button is being held
     if ((event & (B_CLICK | B_PRESS)) == (B_CLICK | B_PRESS)) {
@@ -38,14 +49,22 @@ uint8_t momentary_state(Event event, uint16_t arg) {
         if (momentary_mode == 0) {
             set_level(memorized_level);
         }
+        #ifdef ALLOW_INTERMITTENT_ESCAPE
+        return EVENT_NOT_HANDLED;
+        #else
         return MISCHIEF_MANAGED;
+        #endif
     }
     // button was released
     else if ((event & (B_CLICK | B_PRESS)) == (B_CLICK)) {
         momentary_active = 0;
         set_level(0);
         //go_to_standby = 1;  // sleep while light is off
+        #ifdef ALLOW_INTERMITTENT_ESCAPE
+        return EVENT_NOT_HANDLED;
+        #else
         return MISCHIEF_MANAGED;
+        #endif
     }
 
     // Sleep, dammit!  (but wait a few seconds first)
@@ -75,7 +94,12 @@ uint8_t momentary_state(Event event, uint16_t arg) {
         #ifdef USE_STROBE_STATE
         }
         #endif
+
+        #ifdef ALLOW_INTERMITTENT_ESCAPE
+        return EVENT_NOT_HANDLED;
+        #else
         return MISCHIEF_MANAGED;
+        #endif
     }
 
     return EVENT_NOT_HANDLED;
