@@ -22,14 +22,11 @@
 
 #include "momentary-mode.h"
 
-uint8_t momentary_state(Event event, uint16_t arg) {
+uint8_t momentary_state(Event event, uint16_t arg) { 
     // init strobe mode, if relevant
     #ifdef USE_STROBE_STATE
     if ((event == EV_enter_state) && (momentary_mode == 1)) {
         strobe_state(event, arg);
-        #ifdef ALLOW_INTERMITTENT_ESCAPE
-        return MISCHIEF_MANAGED;
-        #endif
     }
     #endif
 
@@ -64,6 +61,11 @@ uint8_t momentary_state(Event event, uint16_t arg) {
     else if ((event & (B_CLICK | B_PRESS)) == (B_CLICK)) {
         momentary_active = 0;
         set_level(0);
+
+        #if defined(USE_MOMENTARY_VOLTAGE_DISPLAY) && defined(USE_AUX_RGB_LEDS)
+        rgb_led_voltage_readout(1);
+        #endif
+
         //go_to_standby = 1;  // sleep while light is off
         #ifdef ALLOW_INTERMITTENT_ESCAPE
         return EVENT_NOT_HANDLED;
@@ -78,6 +80,10 @@ uint8_t momentary_state(Event event, uint16_t arg) {
     //  disconnected for several seconds, so we want to be awake when that
     //  happens to speed up the process)
     else if (event == EV_tick) {
+        #if defined(USE_MOMENTARY_VOLTAGE_DISPLAY) && defined(USE_AUX_RGB_LEDS)
+        rgb_led_voltage_readout(1);
+        #endif
+
         #ifdef USE_STROBE_STATE
         if (momentary_active) {
             // 0 = ramping, 1 = strobes
