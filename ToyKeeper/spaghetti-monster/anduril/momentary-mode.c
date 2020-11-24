@@ -27,16 +27,21 @@ uint8_t momentary_state(Event event, uint16_t arg) {
     #ifdef USE_STROBE_STATE
     if ((event == EV_enter_state) && (momentary_mode == 1)) {
         strobe_state(event, arg);
+        #ifdef ALLOW_INTERMITTENT_ESCAPE
+        return MISCHIEF_MANAGED;
+        #endif
     }
     #endif
 
     #ifdef ALLOW_INTERMITTENT_ESCAPE
     if (event == EV_click10_hold) {
         blink_once();
+        momentary_active = 0;
+        blink_once();
         // reset button sequence to avoid activating anything in ramp mode
         current_event = 0;
         // ... and back to ramp mode
-        set_state(steady_state, 1);
+        set_state(off_state, 0);
         return MISCHIEF_MANAGED;
     }
     #endif
