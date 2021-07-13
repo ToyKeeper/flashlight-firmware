@@ -146,7 +146,16 @@ uint8_t steady_state(Event event, uint16_t arg) {
     // click, hold: change brightness (dimmer)
     else if ((event == EV_click1_hold) || (event == EV_click2_hold)) {
         // ramp slower in discrete mode
-        if (ramp_style  &&  (arg % HOLD_TIMEOUT != 0)) {
+        if ((ramp_style  &&  (arg % HOLD_TIMEOUT != 0))
+                #ifdef RAMP_LOW_SLOWED_DOWN
+                // ramp slower if below a threshold
+                // if <= RAMP_QUARTERSPEED_LEVEL, skip 3 of 4 hold events
+                || (actual_level <= RAMP_SMOOTH_QUARTERSPEED_LEVEL && (arg % 4) != 0)
+                // if <= RAMP_HALFSPEED_LEVEL, skip 1 of 2 hold events
+                || (actual_level <= RAMP_SMOOTH_HALFSPEED_LEVEL && (arg % 2) != 0)
+                // 4 is a multiple of 2, falling through is fine
+                #endif
+                ) {
             return MISCHIEF_MANAGED;
         }
         // fix ramp direction on first frame if necessary

@@ -24,6 +24,20 @@
 #define RAMP_LENGTH 150  // default, if not overridden in a driver cfg file
 #endif
 
+// optionally slow down ramping below certain levels, 0 = disabled
+// useful for taming drivers capable of very low moonlight levels
+#ifndef RAMP_SMOOTH_HALFSPEED_LEVEL
+#define RAMP_SMOOTH_HALFSPEED_LEVEL 0 // ramping speed cut in half at/below this
+#endif
+#ifndef RAMP_SMOOTH_QUARTERSPEED_LEVEL
+#define RAMP_SMOOTH_QUARTERSPEED_LEVEL 0 // ramping speed cut in 1/4th at/below this
+#endif
+
+// check if slower speeds are configured
+#if RAMP_SMOOTH_HALFSPEED_LEVEL > 0 || RAMP_SMOOTH_QUARTERSPEED_LEVEL > 0
+#define RAMP_LOW_SLOWED_DOWN
+#endif
+
 // thermal properties, if not defined per-driver
 #ifndef MIN_THERM_STEPDOWN
 #define MIN_THERM_STEPDOWN MAX_1x7135  // lowest value it'll step down to
