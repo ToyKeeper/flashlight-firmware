@@ -129,7 +129,12 @@ uint8_t off_state(Event event, uint16_t arg) {
         // give the user time to release at moon level
         //if (arg >= HOLD_TIMEOUT) {  // smaller
         if (arg >= (!ramp_style) * HOLD_TIMEOUT) {  // more consistent
-            set_state(steady_state, 1);
+            #ifndef MOON_RAMP_DELAY
+            #define MOON_RAMP_DELAY 0
+            #endif
+            if (arg > MOON_RAMP_DELAY) {
+                set_state(steady_state, 1);
+            }
         }
         return MISCHIEF_MANAGED;
     }
