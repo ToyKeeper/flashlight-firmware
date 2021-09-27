@@ -61,6 +61,7 @@ Functions available in Simple UI include:
   - 2H: If light is on : ramp down
         If light is off: momentary high mode
   - 2C: Double click to go to / from highest safe level
+  - 3H: Tint ramping (on lights which have it).
   - 4C: Lockout mode.
 
 Some other modes and functions are available too.  When the light is 
