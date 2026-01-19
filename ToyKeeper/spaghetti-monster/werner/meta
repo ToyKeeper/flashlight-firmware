@@ -1,6 +1,7 @@
 Description: Werner-style UI for FSM.
   Click for brighter, hold for dimmer, tail switch for on/off.
   Plus config/utility modes on "hold side-switch while turning on".
+  THIS CODE IS OBSOLETE AND ABANDONED.
 Authors: ToyKeeper
 MCU: attiny85
 Button-Type: momentary + clicky

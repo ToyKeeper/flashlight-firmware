@@ -2,6 +2,7 @@ Description: Momentary, a simple example UI for FSM.
     Press button: light on.
     Release button: light off.
     That's all.
+    THIS CODE IS OBSOLETE AND ABANDONED.
 Authors: ToyKeeper
 MCU: attiny25, attiny45, attiny85
 Button-Type: momentary

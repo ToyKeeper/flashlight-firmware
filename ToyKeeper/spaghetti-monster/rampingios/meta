@@ -1,4 +1,5 @@
 Description: RampingIOS V3, the UI for Emisar lights.
+  THIS CODE IS OBSOLETE AND ABANDONED.
 Authors: ToyKeeper
 MCU: attiny85
 Button-Type: momentary

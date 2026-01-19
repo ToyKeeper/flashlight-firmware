@@ -9,6 +9,7 @@ Description: Fireflies UI, a custom UI for Fireflies-brand lights.
   - 10 clicks from off: thermal config
   - beacon and sunset removed
   - battcheck, lockout, momentary unchanged
+  THIS CODE IS OBSOLETE AND ABANDONED.
 Authors: ToyKeeper
 MCU: attiny85
 Button-Type: momentary

@@ -1,4 +1,6 @@
 Description: Baton, an Olight Baton clone UI for FSM.
+    THIS CODE IS OBSOLETE.  GO HERE FOR THE LATEST VERSION:
+    https://toykeeper.net/anduril
 Authors: ToyKeeper
 MCU: attiny45, attiny85
 Button-Type: momentary

@@ -1,6 +1,8 @@
 Description: Anduril, a Narsil-inspired UI for FSM.
     (Anduril was Aragorn's sword, the blade Narsil reforged)
     Full-featured UI which does a bit of everything.
+    THIS VERSION OF ANDURIL IS OBSOLETE.  GO HERE FOR THE LATEST VERSION:
+    https://toykeeper.net/anduril
 Authors: ToyKeeper
 MCU: attiny85
 Button-Type: momentary
