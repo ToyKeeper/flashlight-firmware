@@ -1,0 +1,35 @@
+name: build all
+
+on:
+  push:
+   branches:
+    - main
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Install requirements
+      run: |
+        sudo apt-get -y update
+        sudo apt-get -y install sdcc make
+
+    - name: Build
+      run: |
+        make LAYOUT=CONVOY_7135
+        make LAYOUT=CONVOY_7135_NOCAP
+        echo "ARTIFACT_NAME=${GITHUB_WORKFLOW}-$(git rev-parse --short ${GITHUB_SHA})-${GITHUB_RUN_NUMBER}" >> "${GITHUB_ENV}"
+
+    - name: Store artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware
+        if-no-files-found: error
+        path: |
+          build/*/*.hex

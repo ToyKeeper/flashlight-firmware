@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "SDCC",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Program Files/SDCC/include",
+                "C:/Program Files/SDCC/include/mcs51"
+            ],
+            "defines": [
+                "__SDCC",
+                "__SDCC_mcs51",
+                "SDCC",
+                "VSCODE",
+                // Dummy defines to keep IntelliSense happy
+                "__data=",
+                "__code=",
+                "__xdata=",
+                "__sfr=unsigned char",
+                "__sfr16=unsigned int",
+                "__sbit=int",
+                "__at(a)=",
+                "__interrupt(x)=",
+                "__using(x)=",
+                "__nonbanked="
+            ],
+            "cStandard": "gnu11",
+            "compilerPath": ""
+        }
+    ],
+    "version": 4
+}

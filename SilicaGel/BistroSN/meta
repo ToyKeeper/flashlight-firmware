@@ -1,0 +1,14 @@
+Description: "Bistro" ported to Convoy SN8F5701 8x7135 driver
+  Full details at BLF and GitHub:
+  https://budgetlightforum.com/t/bistrosn-a-port-of-bistro-firmware-to-convoy-sn8f5701-8x7135-driver/231645
+  https://github.com/silicagel777/BistroSN
+  Requires special hardware and software to reflash:
+  https://github.com/silicagel777/SN8Flash
+  Requires driver hardware modifications to get some features working.
+Button-Type: clicky
+Memory: offtime, OTC, configurable
+MCU: SN8F5701
+Authors: SilicaGel, ToyKeeper
+Modes: battcheck, voltage readout, tactical strobe, random strobe, police strobe, bike flasher, config, muggle
+Extras: dual PWM, offtime-3, hidden modes, mode groups, thermal regulation, LVP, soft start
+License: GPLv3

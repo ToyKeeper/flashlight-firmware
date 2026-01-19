@@ -52,6 +52,9 @@ Summary of each project
     SammysHP/rampinglight:
         "rampinglight" firmware for clicky-switch Convoy/nanjg lights
 
+    SilicaGel/BistroSN:
+        "Bistro" ported to Convoy SN8F5701 8x7135 driver
+
     Tamagotchi/7135x8v2:
         Very flexible clicky firmware with hidden modes, from fonarevka.ru
 
@@ -229,6 +232,9 @@ Authors
     SammysHP:
         SammysHP/rampinglight
 
+    SilicaGel:
+        SilicaGel/BistroSN
+
     Tamagotchi:
         Tamagotchi/7135x8v2
 
@@ -243,6 +249,7 @@ Authors
     ToyKeeper:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         Tom_E/RampingIOS
         Tom_E/narsil
         ToyKeeper/Ferrero_Rocher
@@ -323,6 +330,7 @@ Button-Type
         Mike_C/X85
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         Tamagotchi/7135x8v2
         Tido/BLF-VLD
         ToyKeeper/STAR_1mode
@@ -392,6 +400,7 @@ Extras
         Flintrock/bistro-hd
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         Tamagotchi/7135x8v2
         Tom_E/RampingIOS
         Tom_E/narsil
@@ -425,6 +434,7 @@ Extras
         JonnyC/STAR/STAR_momentary
         JonnyC/STAR/STAR_off_time
         RMM/dragon
+        SilicaGel/BistroSN
         Tom_E/RampingIOS
         Tom_E/narsil
         ToyKeeper/STAR_1mode
@@ -455,6 +465,7 @@ Extras
         Flintrock/bistro-hd
         JonnyC/STAR/STAR_momentary
         RMM/dragon
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
@@ -468,6 +479,7 @@ Extras
     mode groups:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
@@ -481,6 +493,7 @@ Extras
         Flashy_Mike/otsm-example
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
@@ -520,6 +533,7 @@ Extras
     soft start:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
 
@@ -545,6 +559,7 @@ Extras
     thermal regulation:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         Tom_E/RampingIOS
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
@@ -606,6 +621,7 @@ License
         Mike_C/X85
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
         ToyKeeper/bistro/tripledown
@@ -619,6 +635,9 @@ License
         Flashy_Mike/otsm-example
 
 MCU
+
+    SN8F5701:
+        SilicaGel/BistroSN
 
     attiny10:
         tterev3/attiny10_starter_code
@@ -722,6 +741,7 @@ Memory
         JonnyC/STAR/STAR_off_time
         Mike_C/X85
         RMM/dragon
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
         ToyKeeper/blf-a6
@@ -741,6 +761,7 @@ Memory
         Mike_C/X85
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
@@ -787,6 +808,7 @@ Memory
         Mike_C/X85
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         ToyKeeper/STAR_noinit
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
@@ -880,6 +902,7 @@ Modes
         Flintrock/bistro-hd
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         Tamagotchi/7135x8v2
         Tom_E/RampingIOS
         Tom_E/narsil
@@ -926,6 +949,7 @@ Modes
     bike flasher:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         Tamagotchi/7135x8v2
         Tom_E/narsil
         ToyKeeper/bistro
@@ -950,6 +974,7 @@ Modes
         Flintrock/bistro-hd
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/biscotti
@@ -980,10 +1005,6 @@ Modes
     fade:
         Tido/BLF-VLD
 
-    goodnight:
-        ToyKeeper/crescendo
-        ToyKeeper/spaghetti-monster/anduril
-
     heart beacon:
         ToyKeeper/crescendo
 
@@ -1007,9 +1028,9 @@ Modes
     muggle:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
-        ToyKeeper/spaghetti-monster/anduril
 
     party strobe:
         ToyKeeper/blf-a6/cypreus2
@@ -1026,6 +1047,7 @@ Modes
     police strobe:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
@@ -1050,6 +1072,7 @@ Modes
     random strobe:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown
 
@@ -1067,11 +1090,16 @@ Modes
         Tido/BLF-VLD
         odd/MGdriver
 
+    sunset:
+        ToyKeeper/crescendo
+        ToyKeeper/spaghetti-monster/anduril
+
     tactical strobe:
         DrJones/luxdrv
         Flintrock/bistro-hd
         RMM/dragon
         SammysHP/rampinglight
+        SilicaGel/BistroSN
         Tom_E/eswitch-13
         Tom_E/narsil
         ToyKeeper/bistro
@@ -1107,6 +1135,7 @@ Modes
     voltage readout:
         Flintrock/bistro-hd
         RMM/dragon
+        SilicaGel/BistroSN
         Tom_E/narsil
         ToyKeeper/bistro
         ToyKeeper/bistro/tripledown

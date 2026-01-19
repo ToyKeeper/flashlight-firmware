@@ -1,0 +1,41 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            // change the following to "make -j $(getconf _NPROCESSORS_ONLN)" on Linux
+            "command": "make -j $ENV:NUMBER_OF_PROCESSORS",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "focus": true
+            }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "make flash PORT=COM4",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "focus": true
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "make clean",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "focus": true
+            }
+        }
+    ]
+}
