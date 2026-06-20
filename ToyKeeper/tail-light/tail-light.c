@@ -1,10 +1,10 @@
-/*
+/* Bike tail light firmware (old version, deprecated)
+ * Copyright (C) 2014-2026 Selene ToyKeeper
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
  * This is intended for use on bike tail lights with a clicky switch.
  * Ideally, a red XP-E2 running at 700mA.
  * It's mostly based on JonnyC's STAR on-time firmware.
- *
- * Original author: JonnyC
- * Modifications: Selene ToyKeeper
  *
  * NANJG 105C Diagram
  *           ---

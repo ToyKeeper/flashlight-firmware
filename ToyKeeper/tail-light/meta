@@ -1,8 +1,9 @@
 Description: Biking tail light / head light firmware
  with 2-level stutter flashers for increased visibility
-Authors: ToyKeeper, JonnyC
-MCU: attiny13
+ and strong bump protection to avoid accidental mode changes
 Button-Type: clicky
-Memory: ontime
-Modes: battcheck, beacon, bike flasher
+Memory: offtime, mem decay, ontime, none
+MCU: attiny13
+Authors: ToyKeeper
+Modes: battcheck, bike flasher, beacon, party strobe, variable strobe
 Extras:
